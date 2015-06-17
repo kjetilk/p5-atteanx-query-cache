@@ -2,10 +2,20 @@ use 5.010001;
 use strict;
 use warnings;
 
-package AtteanX::Query::Cache;
+package AtteanX::IDPQueryPlanner::TPFCache;
 
 our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001';
+
+use Moo;
+
+extends 'Attean::IDPQueryPlanner';
+
+#sub access_plans {
+	# Checking the cache here
+	# Then check TPF and remote SPARQL
+#}
+
 
 1;
 
@@ -17,16 +27,11 @@ __END__
 
 =head1 NAME
 
-AtteanX::Query::Cache - Experimental prefetching SPARQL query cacher
+AtteanX::IDPQueryPlanner::TPFCache - Extending the query planner with cache and TPF support
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
-
-=head1 BUGS
-
-Please report any bugs to
-L<http://rt.cpan.org/Dist/Display.html?Queue=AtteanX-Query-Cache>.
 
 =head1 SEE ALSO
 
