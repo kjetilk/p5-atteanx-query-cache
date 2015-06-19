@@ -32,7 +32,7 @@ around 'access_plans' => sub {
 	my $cached = $self->cache->get($keypattern->tuples_string);
 	if (defined($cached)) {
 		# We found data in the cache
-		my @vars	= grep { $_->does('Attean::API::Variable') } $pattern->values;
+		my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
 			foreach my $row (@{$cached}) { # TODO: arbitrary terms
