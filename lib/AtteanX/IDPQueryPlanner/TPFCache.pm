@@ -40,7 +40,7 @@ around 'access_plans' => sub {
 			}
 		} elsif (ref($cached) eq 'HASH') {
 			while (my($first, $second) = each(%{$cached})) {
-				foreach my $term (@{$second}) { # TODO has to ensure stability
+				foreach my $term (@{$second}) {
 					push(@rows, Attean::Result->new(bindings => {$vars[0]->value => iri($first),
 																				$vars[1]->value => iri($term)}));
 				}
@@ -48,7 +48,6 @@ around 'access_plans' => sub {
 		} else {
 			croak 'Unknown data structure found in cache for key ' . $keypattern->tuples_string;
 		}
-
 		return Attean::Plan::Table->new( variables => \@vars,
 													rows => \@rows,
 													distinct => 0,
