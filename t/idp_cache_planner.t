@@ -28,7 +28,6 @@ package TestStore {
 	}
 }
 
-
 # Attean::Plan::Quad
 # Attean::Plan::NestedLoopJoin
 # Attean::Plan::HashJoin
@@ -44,7 +43,9 @@ package TestStore {
 # Attean::Plan::Service
 # Attean::Plan::Table
 
-my $p	= AtteanX::IDPQueryPlanner::TPFCache->new();
+my $cache = CHI->new( driver => 'Memory', global => 1 );
+
+my $p	= AtteanX::IDPQueryPlanner::TPFCache->new(cache=>$cache);
 isa_ok($p, 'Attean::IDPQueryPlanner');
 isa_ok($p, 'AtteanX::IDPQueryPlanner::TPFCache');
 does_ok($p, 'Attean::API::CostPlanner');
@@ -56,7 +57,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 # Dictionary?
 
 {
-	my $cache = CHI->new( driver => 'Memory', global => 1 );
 
 	my $store	= TestStore->new();
 	my $model	= Attean::MutableQuadModel->new( store => $store );
@@ -79,19 +79,27 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('PREDICATE:IRI:p|OBJECT:LITERAL:1', ['http://example.org/foo', 'http://example.org/bar']);
-		$cache->set('PREDICATE:IRI:p|OBJECT:LITERAL:dahut', ['http://example.com/foo', 'http://example.com/bar']);
-		$cache->set('PREDICATE:IRI:dahut|OBJECT:LITERAL:1', ['http://example.org/dahut']);
+		$cache->set('?subject <p> "1" .', ['http://example.org/foo', 'http://example.org/bar']);
+		$cache->set('?subject <p> "dahut" .', ['http://example.com/foo', 'http://example.com/bar']);
+		$cache->set('?subject <dahut> "1" .', ['http://example.org/dahut']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
-		is(scalar(@$rows), 2);
+		is(scalar(@$rows), 2, 'Got two rows back');
+		foreach my $row (@$rows) {
+			my @vars = $row->variables;
+			is($vars[0], 's', 'Variable name is correct');
+			does_ok($row->value('s'), 'Attean::API::IRI');
+		}
+		ok(${$rows}[0]->value('s')->equals(iri('http://example.org/foo')), 'First IRI is OK'); 
+		ok(${$rows}[1]->value('s')->equals(iri('http://example.org/bar')), 'Second IRI is OK'); 
+
 	};
 
 	done_testing;
-
+exit 0;
 	subtest '2-triple BGP without join variable' => sub {
 		note("A 2-triple BGP without a join variable should produce a distinct nested loop join");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $w]);
