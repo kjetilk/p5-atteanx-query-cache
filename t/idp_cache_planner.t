@@ -79,9 +79,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP single variable, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?subject <p> "1" .', ['http://example.org/foo', 'http://example.org/bar']);
-		$cache->set('?subject <p> "dahut" .', ['http://example.com/foo', 'http://example.com/bar']);
-		$cache->set('?subject <dahut> "1" .', ['http://example.org/dahut']);
+		$cache->set('?subject <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
@@ -100,10 +100,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?subject <p> ?object .', {'http://example.org/foo' => ['http://example.org/bar'],
-															'http://example.com/foo' => ['http://example.org/baz', 'http://example.org/foobar']});
-		$cache->set('?subject <p> "dahut" .', ['http://example.com/foo', 'http://example.com/bar']);
-		$cache->set('?subject <dahut> ?object .', {'http://example.org/dahut' => ['Foobar']});
+		$cache->set('?subject <p> ?object .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+															'<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
