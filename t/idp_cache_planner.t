@@ -129,6 +129,32 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	};
 
+	subtest '1-triple BGP single variable object, with cache' => sub {
+		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		$cache->set('<http://example.org/foo> <p> ?object .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('<http://example.org/foo> <dahut> ?object .', ['"Le Dahu"@fr', '"Dahut"@en']);
+		$cache->set('?subject <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
+		my $tp = triplepattern(iri('http://example.org/foo'),
+									  iri('dahut'),
+									  variable('name'));
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$tp]);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
+		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
+		isa_ok($plan, 'Attean::Plan::Table');
+		my $rows	= $plan->rows;
+		is(scalar(@$rows), 2, 'Got two rows back');
+		foreach my $row (@$rows) {
+			my @vars = $row->variables;
+			is($vars[0], 'name', 'Variable name is correct');
+			does_ok($row->value('name'), 'Attean::API::Literal');
+		}
+		ok(${$rows}[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
+		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
+
+	};
+
+
+
 	done_testing;
 exit 0;
 	subtest '2-triple BGP without join variable' => sub {
