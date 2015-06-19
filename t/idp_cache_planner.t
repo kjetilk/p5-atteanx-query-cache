@@ -77,7 +77,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 
-	subtest '1-triple BGP, with cache' => sub {
+	subtest '1-triple BGP single variable, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
 		$cache->set('?subject <p> "1" .', ['http://example.org/foo', 'http://example.org/bar']);
 		$cache->set('?subject <p> "dahut" .', ['http://example.com/foo', 'http://example.com/bar']);
@@ -95,6 +95,35 @@ does_ok($p, 'Attean::API::CostPlanner');
 		}
 		ok(${$rows}[0]->value('s')->equals(iri('http://example.org/foo')), 'First IRI is OK'); 
 		ok(${$rows}[1]->value('s')->equals(iri('http://example.org/bar')), 'Second IRI is OK'); 
+
+	};
+
+	subtest '1-triple BGP two variables, with cache' => sub {
+		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		$cache->set('?subject <p> ?object .', {'http://example.org/foo' => ['http://example.org/bar'],
+															'http://example.com/foo' => ['http://example.org/bar', 'http://example.org/foobar']});
+		$cache->set('?subject <p> "dahut" .', ['http://example.com/foo', 'http://example.com/bar']);
+		$cache->set('?subject <dahut> ?object .', {'http://example.org/dahut' => ['Foobar']});
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
+		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
+		isa_ok($plan, 'Attean::Plan::Table');
+		my $rows	= $plan->rows;
+		is(scalar(@$rows), 3, 'Got three rows back');
+		foreach my $row (@$rows) {
+			my @vars = $row->variables;
+			is(scalar(@vars), 2, 'Each result has two variables');
+			is($vars[0], 's', 'First variable name is correct');
+			is($vars[1], 'o', 'Second variable name is correct');
+			does_ok($row->value('s'), 'Attean::API::IRI');
+			does_ok($row->value('o'), 'Attean::API::IRI');
+		}
+		ok(${$rows}[0]->value('s')->equals(iri('http://example.org/foo')), 'First triple subject IRI is OK'); 
+		ok(${$rows}[0]->value('o')->equals(iri('http://example.org/bar')), 'First triple object IRI is OK'); 
+		ok(${$rows}[1]->value('s')->equals(iri('http://example.com/foo')), 'Second triple subject IRI is OK'); 
+		ok(${$rows}[1]->value('o')->equals(iri('http://example.org/bar')), 'Second triple object IRI is OK'); 
+		ok(${$rows}[2]->value('s')->equals(iri('http://example.com/foo')), 'Third triple subject IRI is OK'); 
+		ok(${$rows}[2]->value('o')->equals(iri('http://example.org/foo')), 'Third triple object IRI is OK'); 
 
 	};
 
