@@ -70,7 +70,7 @@ sub _normalize_pattern {
 	my @varnames = $pattern->variables;
 	my $i = 0;
 	foreach my $term (@keyterms) {
-		if ($term->does('Attean::API::Variable')) {
+		if ($term->is_variable) {
 			$keyterms[$i] = variable($varnames[$i]); # Normalize variable names
 		}
 		$i++;
