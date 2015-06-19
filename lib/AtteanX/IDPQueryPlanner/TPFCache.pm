@@ -33,16 +33,20 @@ around 'access_plans' => sub {
 	if (defined($cached)) {
 		# We found data in the cache
 		my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
+		my $parser = Attean->get_parser('NTriples')->new;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
 			foreach my $row (@{$cached}) { # TODO: arbitrary terms
-				push(@rows, Attean::Result->new(bindings => { $vars[0]->value => iri($row) }));
+				my $term = $parser->parse_term_from_string($row);
+				push(@rows, Attean::Result->new(bindings => { $vars[0]->value => $term }));
 			}
 		} elsif (ref($cached) eq 'HASH') {
 			while (my($first, $second) = each(%{$cached})) {
+				my $term1 = $parser->parse_term_from_string($first);
 				foreach my $term (@{$second}) {
-					push(@rows, Attean::Result->new(bindings => {$vars[0]->value => iri($first),
-																				$vars[1]->value => iri($term)}));
+					my $term2 = $parser->parse_term_from_string($term);
+					push(@rows, Attean::Result->new(bindings => {$vars[0]->value => $term1,
+																				$vars[1]->value => $term2}));
 				}
 			}
 		} else {
