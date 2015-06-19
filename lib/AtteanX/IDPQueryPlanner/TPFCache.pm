@@ -12,6 +12,7 @@ our $VERSION   = '0.001';
 use Moo;
 use Types::Standard qw(InstanceOf);
 use Attean::RDF qw(triplepattern variable iri);
+use Carp;
 
 extends 'Attean::IDPQueryPlanner';
 
@@ -33,9 +34,21 @@ around 'access_plans' => sub {
 		# We found data in the cache
 		my @vars	= grep { $_->does('Attean::API::Variable') } $pattern->values;
 		my @rows;
-		foreach my $row (@{$cached}) { # TODO: Has to deal with hashrefs and arbitrary terms
-			push(@rows, Attean::Result->new(bindings => { $vars[0]->value => iri($row) }));
+		if (ref($cached) eq 'ARRAY') {
+			foreach my $row (@{$cached}) { # TODO: arbitrary terms
+				push(@rows, Attean::Result->new(bindings => { $vars[0]->value => iri($row) }));
+			}
+		} elsif (ref($cached) eq 'HASH') {
+			while (my($first, $second) = each(%{$cached})) {
+				foreach my $term (@{$second}) { # TODO has to ensure stability
+					push(@rows, Attean::Result->new(bindings => {$vars[0]->value => iri($first),
+																				$vars[1]->value => iri($term)}));
+				}
+			}
+		} else {
+			croak 'Unknown data structure found in cache for key ' . $keypattern->tuples_string;
 		}
+
 		return Attean::Plan::Table->new( variables => \@vars,
 													rows => \@rows,
 													distinct => 0,
@@ -57,6 +70,7 @@ sub _normalize_pattern {
 		if ($term->does('Attean::API::Variable')) {
 			$keyterms[$i] = variable($varnames[$i]); # Normalize variable names
 		}
+		$i++;
 	}
 	return triplepattern(@keyterms);
 }
