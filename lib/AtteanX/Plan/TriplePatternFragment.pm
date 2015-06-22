@@ -42,4 +42,6 @@ package AtteanX::Plan::TriplePatternFragment 0.005 {
 		}
 	}
 }
-a
+
+
+1;
