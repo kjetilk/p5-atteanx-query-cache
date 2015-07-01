@@ -58,10 +58,20 @@ around 'access_plans' => sub {
 													in_scope_variables => [ map {$_->value} @vars],
 													ordered => [] );
 	} else {
-		return $orig->(@params)
+#		die "FOOOOOOOOOO";
+		if ($model->can('get_sparql')) {
+			return AtteanX::Store::SPARQL::Plan::Triple->new($pattern);
+		} else {
+			return $orig->(@params)
+		}
 	}
 	# Then check TPF and remote SPARQL
 };
+
+#around 'plans_for_algebra' => sub {
+#	my $orig = shift;
+#	my @params = @_;
+	
 
 
 sub _normalize_pattern {
