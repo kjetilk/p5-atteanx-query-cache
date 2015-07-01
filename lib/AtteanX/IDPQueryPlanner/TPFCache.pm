@@ -58,7 +58,7 @@ around 'access_plans' => sub {
 													in_scope_variables => [ map {$_->value} @vars],
 													ordered => [] );
 	} else {
-#		die "FOOOOOOOOOO";
+		warn ref($model);
 		if ($model->can('get_sparql')) {
 			return AtteanX::Store::SPARQL::Plan::Triple->new($pattern);
 		} else {
