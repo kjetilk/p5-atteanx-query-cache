@@ -13,6 +13,7 @@ use Moo;
 use Types::Standard qw(InstanceOf);
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
+use AtteanX::Store::SPARQL::Plan::Triple;
 
 extends 'Attean::IDPQueryPlanner';
 
@@ -58,8 +59,8 @@ around 'access_plans' => sub {
 													in_scope_variables => [ map {$_->value} @vars],
 													ordered => [] );
 	} else {
-		warn ref($model);
-		if ($model->can('get_sparql')) {
+#		warn Data::Dumper::Dumper($model);
+		if ($model->store->can('get_sparql')) {
 			return AtteanX::Store::SPARQL::Plan::Triple->new($pattern);
 		} else {
 			return $orig->(@params)
