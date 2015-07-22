@@ -31,9 +31,9 @@ around 'access_plans' => sub {
 	my $pattern	= shift;
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $self->cache->get($keypattern->tuples_string);
+	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 	if (defined($cached)) {
 		# We found data in the cache
-		my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 		my $parser = Attean->get_parser('NTriples')->new;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
@@ -61,7 +61,11 @@ around 'access_plans' => sub {
 	} else {
 #		warn Data::Dumper::Dumper($model);
 		if ($model->store->can('get_sparql')) {
-			return AtteanX::Store::SPARQL::Plan::Triple->new($pattern);
+			return AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
+																			 predicate => $pattern->predicate,
+																			 object => $pattern->object,
+																			 in_scope_variables => [ map {$_->value} @vars],
+																			 distinct => 0); # TODO: check
 		} else {
 			return $orig->(@params)
 		}
