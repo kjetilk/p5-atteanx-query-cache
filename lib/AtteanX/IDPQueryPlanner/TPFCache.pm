@@ -22,16 +22,27 @@ has cache => (is => 'ro',
 				  required => 1
 				 );
 
-around 'access_plans' => sub {
+sub access_plans {
 	my $orig = shift;
 	my @params = @_;
 	my $self	= shift;
 	my $model = shift;
 	my $active_graphs	= shift;
 	my $pattern	= shift;
+	unless (defined($pattern)) {
+		return Attean::Plan::Table->new( rows => [Attean::Result->new( bindings => {} )], variables => [], distinct => 1, in_scope_variables => [], ordered => [] );
+	}
+	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
+	# First, assume that we can always get a triple from a remote endpoint
+	my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
+																			 predicate => $pattern->predicate,
+																			 object => $pattern->object,
+																			 in_scope_variables => [ map {$_->value} @vars],
+																			 distinct => 0)); # TODO: check
+
+	# But then, also check the cache
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $self->cache->get($keypattern->tuples_string);
-	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 	if (defined($cached)) {
 		# We found data in the cache
 		my $parser = Attean->get_parser('NTriples')->new;
@@ -53,25 +64,16 @@ around 'access_plans' => sub {
 		} else {
 			croak 'Unknown data structure found in cache for key ' . $keypattern->tuples_string;
 		}
-		return Attean::Plan::Table->new( variables => \@vars,
-													rows => \@rows,
-													distinct => 0,
-													in_scope_variables => [ map {$_->value} @vars],
-													ordered => [] );
-	} else {
-#		warn Data::Dumper::Dumper($model);
-		if ($model->store->can('get_sparql')) {
-			return AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
-																			 predicate => $pattern->predicate,
-																			 object => $pattern->object,
-																			 in_scope_variables => [ map {$_->value} @vars],
-																			 distinct => 0); # TODO: check
-		} else {
-			return $orig->(@params)
-		}
+		push(@plans, Attean::Plan::Table->new( variables => \@vars,
+															rows => \@rows,
+															distinct => 0,
+															in_scope_variables => [ map {$_->value} @vars],
+															ordered => [] ));
 	}
-	# Then check TPF and remote SPARQL
-};
+
+	# TODO: Then check TPF
+	return @plans;
+}
 
 #around 'plans_for_algebra' => sub {
 #	my $orig = shift;
