@@ -29,12 +29,12 @@ sub access_plans {
 	my $pattern	= shift;
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 	# First, assume that we can always get a triple from a remote endpoint
-	# my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
-	# 																		 predicate => $pattern->predicate,
-	# 																		 object => $pattern->object,
-	# 																		 in_scope_variables => [ map {$_->value} @vars],
-	# 																		 distinct => 0)); # TODO: check
-	my @plans;
+	my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
+																			 predicate => $pattern->predicate,
+																			 object => $pattern->object,
+																			 in_scope_variables => [ map {$_->value} @vars],
+																			 distinct => 0)); # TODO: check
+	#my @plans;
 	# But then, also check the cache
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $self->cache->get($keypattern->tuples_string);
