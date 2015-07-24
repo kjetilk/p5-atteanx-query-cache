@@ -23,23 +23,18 @@ has cache => (is => 'ro',
 				 );
 
 sub access_plans {
-	my $orig = shift;
-	my @params = @_;
 	my $self	= shift;
 	my $model = shift;
 	my $active_graphs	= shift;
 	my $pattern	= shift;
-	unless (defined($pattern)) {
-		return Attean::Plan::Table->new( rows => [Attean::Result->new( bindings => {} )], variables => [], distinct => 1, in_scope_variables => [], ordered => [] );
-	}
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 	# First, assume that we can always get a triple from a remote endpoint
-	my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
-																			 predicate => $pattern->predicate,
-																			 object => $pattern->object,
-																			 in_scope_variables => [ map {$_->value} @vars],
-																			 distinct => 0)); # TODO: check
-
+	# my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
+	# 																		 predicate => $pattern->predicate,
+	# 																		 object => $pattern->object,
+	# 																		 in_scope_variables => [ map {$_->value} @vars],
+	# 																		 distinct => 0)); # TODO: check
+	my @plans;
 	# But then, also check the cache
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $self->cache->get($keypattern->tuples_string);

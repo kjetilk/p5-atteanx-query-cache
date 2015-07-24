@@ -10,6 +10,7 @@ use Attean;
 use Attean::RDF;
 use AtteanX::IDPQueryPlanner::TPFCache;
 use AtteanX::Store::Memory;
+use Data::Dumper;
 
 package TestStore {
 	use Moo;

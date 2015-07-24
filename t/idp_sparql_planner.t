@@ -10,6 +10,7 @@ use Attean;
 use Attean::RDF;
 use AtteanX::IDPQueryPlanner::TPFCache;
 use AtteanX::Store::Memory;
+use Carp::Always;
 
 package TestStore {
 	use Moo;
@@ -82,12 +83,14 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('?subject <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
+		
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		use Data::Dumper;
-		die Dumper($p->plans_for_algebra($bgp, $model));
+	#	die Dumper($p->plans_for_algebra($bgp, $model));
 		my $plan	= $p->plan_for_algebra($bgp, $model);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::Triple');
+		warn Dumper($plan);
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
