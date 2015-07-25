@@ -61,6 +61,9 @@ around 'access_plans' => sub {
 															ordered => [] ));
 	}
 
+		foreach my $plan (@plans) {
+			warn "BAR " .$plan->as_string;
+		}
 
 	return @plans;
 };
