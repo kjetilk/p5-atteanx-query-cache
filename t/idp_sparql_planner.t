@@ -12,45 +12,25 @@ use AtteanX::IDPQueryPlanner::Cache;
 use AtteanX::Store::Memory;
 use Carp::Always;
 
-package TestStore {
-	use Moo;
-	use namespace::clean;
-	extends 'AtteanX::Store::Memory';
-
-	sub cost_for_plan {
-		# we do this because the superclass would return a cost of 0 for quads when the store is empty
-		# and if 0 was returned, there won't be any meaningful difference between the cost of different join algorithms 
-		my $self	= shift;
-		my $plan	= shift;
-		if ($plan->isa('Attean::Plan::Quad')) {
-			return 3;
-		}
-		return;
-	}
-}
-
-# Attean::Plan::Quad
-# Attean::Plan::NestedLoopJoin
-# Attean::Plan::HashJoin
-# Attean::Plan::EBVFilter
-# Attean::Plan::Merge
-# Attean::Plan::Union
-# Attean::Plan::Extend
-# Attean::Plan::HashDistinct
-# Attean::Plan::Unique
-# Attean::Plan::Slice
-# Attean::Plan::Project
-# Attean::Plan::OrderBy
-# Attean::Plan::Service
-# Attean::Plan::Table
-
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
-my $p	= AtteanX::IDPQueryPlanner::Cache->new(cache=>$cache);
+my $p	= AtteanX::IDPQueryPlanner::Cache->new;
 isa_ok($p, 'Attean::IDPQueryPlanner');
 isa_ok($p, 'AtteanX::IDPQueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
 
+package TestModel {
+	use Moo;
+	use Types::Standard qw(InstanceOf);
+
+	extends 'Attean::MutableQuadModel';
+
+	has 'cache' => (
+						 is => 'ro',
+						 isa => InstanceOf['CHI::Driver'],
+						 required => 1
+					);
+};
 
 # TODO: add data to the cache
 # for two bound: An array of variable
@@ -61,7 +41,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	my $store	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
 	isa_ok($store, 'AtteanX::Store::SPARQL');
-	my $model	= Attean::QuadModel->new( store => $store );
+	my $model	= TestModel->new( store => $store, cache => $cache );
+	my $graph = iri('http://test.invalid/graph');
 	my $t		= triple(variable('s'), iri('p'), literal('1'));
 	my $u		= triple(variable('s'), iri('p'), variable('o'));
 	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
@@ -70,7 +51,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', 'Empty BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -78,7 +59,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 
-	subtest '1-triple BGP single variable, with cache' => sub {
+	subtest '1-triple BGP single variable, with cache, not cached' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
 		$cache->set('?subject <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
@@ -86,21 +67,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 		
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		use Data::Dumper;
-	#	die Dumper($p->plans_for_algebra($bgp, $model));
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::Triple');
-		warn Dumper($plan);
-		my $rows	= $plan->rows;
-		is(scalar(@$rows), 2, 'Got two rows back');
-		foreach my $row (@$rows) {
-			my @vars = $row->variables;
-			is($vars[0], 's', 'Variable name is correct');
-			does_ok($row->value('s'), 'Attean::API::IRI');
-		}
-		ok(${$rows}[0]->value('s')->equals(iri('http://example.org/foo')), 'First IRI is OK'); 
-		ok(${$rows}[1]->value('s')->equals(iri('http://example.org/bar')), 'Second IRI is OK'); 
-
+		isa_ok($plan, 'Attean::Plan::Quad');
+		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
 	subtest '1-triple BGP two variables, with cache' => sub {
@@ -110,7 +80,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -143,7 +113,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 									  iri('dahut'),
 									  variable('name'));
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$tp]);
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -165,7 +135,7 @@ exit 0;
 	subtest '2-triple BGP without join variable' => sub {
 		note("A 2-triple BGP without a join variable should produce a distinct nested loop join");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $w]);
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
 		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
 		ok($plan->distinct);
@@ -174,7 +144,7 @@ exit 0;
 	subtest '2-triple BGP with join variable' => sub {
 		note("A 2-triple BGP with a join variable and without any ordering should produce a distinct hash join");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
-		my $plan	= $p->plan_for_algebra($bgp, $model);
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
 		isa_ok($plan, 'Attean::Plan::HashJoin');
 		ok($plan->distinct);
