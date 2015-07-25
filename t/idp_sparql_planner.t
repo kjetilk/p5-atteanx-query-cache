@@ -1,8 +1,7 @@
 use v5.14;
 use autodie;
 use utf8;
-use Test::More;
-use Test::Exception;
+use Test::Modern;
 use Digest::SHA qw(sha1_hex);
 use CHI;
 
@@ -11,6 +10,7 @@ use Attean::RDF;
 use AtteanX::IDPQueryPlanner::Cache;
 use AtteanX::Store::Memory;
 use Carp::Always;
+use Data::Dumper;
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
@@ -66,7 +66,6 @@ package TestModel {
 		$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
 		
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
-		use Data::Dumper;
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Quad');
@@ -80,7 +79,10 @@ package TestModel {
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
-		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
+
+		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
+
+		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -102,6 +104,9 @@ package TestModel {
 		ok($testrows[2]->value('s')->equals(iri('http://example.com/foo')), 'Third triple subject IRI is OK'); 
 		ok($testrows[2]->value('o')->equals(iri('http://example.org/foobar')), 'Third triple object IRI is OK'); 
 
+		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
+		isa_ok($plans[1], 'Attean::Plan::Quad');
+		is($plans[1]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
@@ -272,11 +277,3 @@ sub order_algebra_by_variables {
 	my $sorted	= Attean::Algebra::OrderBy->new( children => [$algebra], comparators => \@cmps );
 	return $sorted;
 }
-
-sub does_ok {
-    my ($class_or_obj, $does, $message) = @_;
-    $message ||= "The object does $does";
-    ok(eval { $class_or_obj->does($does) }, $message);
-}
-
-
