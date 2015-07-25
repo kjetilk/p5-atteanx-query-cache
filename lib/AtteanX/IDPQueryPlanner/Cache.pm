@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 
-package AtteanX::IDPQueryPlanner::TPFCache;
+package AtteanX::IDPQueryPlanner::Cache;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
@@ -22,20 +22,20 @@ has cache => (is => 'ro',
 				  required => 1
 				 );
 
-sub access_plans {
+around 'access_plans' => sub {
+	my $orig = shift;
+	my @params = @_;
 	my $self	= shift;
 	my $model = shift;
 	my $active_graphs	= shift;
 	my $pattern	= shift;
+
+	# First, add any plans coming from the original planner (which will
+	# include queries to the remote SPARQL endpoint
+	my @plans = $orig->(@params);
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
-	# First, assume that we can always get a triple from a remote endpoint
-	my @plans = (AtteanX::Store::SPARQL::Plan::Triple->new(subject => $pattern->subject,
-																			 predicate => $pattern->predicate,
-																			 object => $pattern->object,
-																			 in_scope_variables => [ map {$_->value} @vars],
-																			 distinct => 0)); # TODO: check
-	#my @plans;
-	# But then, also check the cache
+
+	# Start checking the cache
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $self->cache->get($keypattern->tuples_string);
 	if (defined($cached)) {
@@ -66,14 +66,9 @@ sub access_plans {
 															ordered => [] ));
 	}
 
-	# TODO: Then check TPF
-	return @plans;
-}
 
-#around 'plans_for_algebra' => sub {
-#	my $orig = shift;
-#	my @params = @_;
-	
+	return @plans;
+};
 
 
 sub _normalize_pattern {
@@ -100,7 +95,7 @@ __END__
 
 =head1 NAME
 
-AtteanX::IDPQueryPlanner::TPFCache - Extending the query planner with cache and TPF support
+AtteanX::IDPQueryPlanner::Cache - Extending the query planner with cache and SPARQL support
 
 =head1 SYNOPSIS
 

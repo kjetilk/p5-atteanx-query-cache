@@ -8,7 +8,7 @@ use CHI;
 
 use Attean;
 use Attean::RDF;
-use AtteanX::IDPQueryPlanner::TPFCache;
+use AtteanX::IDPQueryPlanner::Cache;
 use AtteanX::Store::Memory;
 use Carp::Always;
 
@@ -46,9 +46,9 @@ package TestStore {
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
-my $p	= AtteanX::IDPQueryPlanner::TPFCache->new(cache=>$cache);
+my $p	= AtteanX::IDPQueryPlanner::Cache->new(cache=>$cache);
 isa_ok($p, 'Attean::IDPQueryPlanner');
-isa_ok($p, 'AtteanX::IDPQueryPlanner::TPFCache');
+isa_ok($p, 'AtteanX::IDPQueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
 
 
