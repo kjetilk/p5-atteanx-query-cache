@@ -17,11 +17,6 @@ use AtteanX::Store::SPARQL::Plan::Triple;
 
 extends 'Attean::IDPQueryPlanner';
 
-has cache => (is => 'ro',
-				  isa => InstanceOf['CHI::Driver'],
-				  required => 1
-				 );
-
 around 'access_plans' => sub {
 	my $orig = shift;
 	my @params = @_;
@@ -37,7 +32,7 @@ around 'access_plans' => sub {
 
 	# Start checking the cache
 	my $keypattern = $self->_normalize_pattern($pattern);
-	my $cached = $self->cache->get($keypattern->tuples_string);
+	my $cached = $model->cache->get($keypattern->tuples_string);
 	if (defined($cached)) {
 		# We found data in the cache
 		my $parser = Attean->get_parser('NTriples')->new;

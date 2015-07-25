@@ -1,7 +1,7 @@
 use v5.14;
 use autodie;
 use utf8;
-use Test::More;
+use Test::Modern;
 use Test::Exception;
 use Digest::SHA qw(sha1_hex);
 use CHI;
@@ -29,26 +29,24 @@ package TestStore {
 		}
 		return;
 	}
-}
+};
 
-# Attean::Plan::Quad
-# Attean::Plan::NestedLoopJoin
-# Attean::Plan::HashJoin
-# Attean::Plan::EBVFilter
-# Attean::Plan::Merge
-# Attean::Plan::Union
-# Attean::Plan::Extend
-# Attean::Plan::HashDistinct
-# Attean::Plan::Unique
-# Attean::Plan::Slice
-# Attean::Plan::Project
-# Attean::Plan::OrderBy
-# Attean::Plan::Service
-# Attean::Plan::Table
+package TestModel {
+	use Moo;
+	use Types::Standard qw(InstanceOf);
+
+	extends 'Attean::MutableQuadModel';
+
+	has 'cache' => (
+						 is => 'ro',
+						 isa => InstanceOf['CHI::Driver'],
+						 required => 1
+					);
+};
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
-my $p	= AtteanX::IDPQueryPlanner::Cache->new(cache=>$cache);
+my $p	= AtteanX::IDPQueryPlanner::Cache->new;
 isa_ok($p, 'Attean::IDPQueryPlanner');
 isa_ok($p, 'AtteanX::IDPQueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
@@ -62,7 +60,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 {
 
 	my $store	= TestStore->new();
-	my $model	= Attean::MutableQuadModel->new( store => $store );
+	my $model	= TestModel->new( store => $store,
+											cache => $cache
+										 );
 	my $graph	= iri('http://example.org/');
 	my $t		= triple(variable('s'), iri('p'), literal('1'));
 	my $u		= triple(variable('s'), iri('p'), variable('o'));
@@ -300,11 +300,3 @@ sub order_algebra_by_variables {
 	my $sorted	= Attean::Algebra::OrderBy->new( children => [$algebra], comparators => \@cmps );
 	return $sorted;
 }
-
-sub does_ok {
-    my ($class_or_obj, $does, $message) = @_;
-    $message ||= "The object does $does";
-    ok(eval { $class_or_obj->does($does) }, $message);
-}
-
-
