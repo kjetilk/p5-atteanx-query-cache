@@ -36,6 +36,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	my $u		= triple(variable('s'), iri('p'), variable('o'));
 	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
 	my $w		= triple(variable('a'), iri('b'), iri('c'));
+	my $x		= triple(variable('s'), iri('q'), iri('a'));
 
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");
@@ -133,9 +134,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 #		warn Dumper(\@plans);
 		is(scalar @plans, 4, 'Got four plans');
-		foreach my $plan (@plans) {
-			warn "FOO " . $plan->as_string;
-		}
+#		foreach my $plan (@plans) {
+#			warn "FOO " . $plan->as_string;
+#		}
 
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
@@ -144,6 +145,20 @@ does_ok($p, 'Attean::API::CostPlanner');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 			isa_ok($cplan, 'Attean::Plan::Table');
+		}
+	};
+
+	subtest '2-triple BGP with join variable with cache none cached' => sub {
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $x]);
+		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		is(scalar @plans, 4, 'Got four plans');
+		my $plan = $plans[0];
+		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
+		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
+		ok($plan->distinct);
+		foreach my $cplan (@{$plan->children}) {
+			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+			isa_ok($cplan, 'Attean::Plan::Quad');
 		}
 	};
 
