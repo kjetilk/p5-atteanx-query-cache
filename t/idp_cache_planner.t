@@ -173,18 +173,3 @@ does_ok($p, 'Attean::API::CostPlanner');
 }
 
 done_testing();
-
-
-
-sub order_algebra_by_variables {
-	my $algebra	= shift;
-	my @vars	= @_;
-	my @cmps;
-	foreach my $var (@vars) {
-		my $expr	= Attean::ValueExpression->new(value => variable($var));
-		my $cmp		= Attean::Algebra::Comparator->new(ascending => 1, expression => $expr);
-		push(@cmps, $cmp);
-	}
-	my $sorted	= Attean::Algebra::OrderBy->new( children => [$algebra], comparators => \@cmps );
-	return $sorted;
-}
