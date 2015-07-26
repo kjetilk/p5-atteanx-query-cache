@@ -92,23 +92,19 @@ around 'join_plans' => sub {
 		foreach my $rhs (@{ $rplans }) {
 			if ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				$rhs->add_triples($lhs);
-				push(@plans, $rhs);
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, Attean::Plan::Quad->new($rhs->quads)]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
-				 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				$lhs->add_triples($rhs);
-				push(@plans, $lhs);
+					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, Attean::Plan::Quad->new($lhs->quads)]));
 			}
 			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
-				 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				$lhs->add_triples($rhs->triples);
-				push(@plans, $lhs);
+					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [Attean::Plan::Quad->new($lhs->quads), Attean::Plan::Quad->new($rhs->quads)]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
-				 $lhs->isa('Attean::Plan::Quad')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(triples => [$lhs, $rhs],
-																	 $active_graphs, $default_graphs));
+					 $lhs->isa('Attean::Plan::Quad')) {
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs]));
 			}
 			elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
 				if (${$rhs->children}[0]>isa('Attean::Plan::Quad')) {
@@ -141,6 +137,7 @@ around 'join_plans' => sub {
 					# If we get here, both children of $rhs are Table (if not, it is a bug)
 					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$rhs], [$lhs])); # TODO: Is this correct?
 				}
+			}
 		}
 	}
 	unless (@plans) {
