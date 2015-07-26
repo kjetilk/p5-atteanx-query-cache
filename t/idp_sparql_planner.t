@@ -132,12 +132,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-#		warn Dumper(\@plans);
 		is(scalar @plans, 4, 'Got four plans');
-#		foreach my $plan (@plans) {
-#			warn "FOO " . $plan->as_string;
-#		}
-
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
 		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
@@ -166,10 +161,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 4, 'Got four plans');
-#		foreach my $plan (@plans) {
-#			warn "FOO " . $plan->as_string;
-#		}
-
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
 		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
