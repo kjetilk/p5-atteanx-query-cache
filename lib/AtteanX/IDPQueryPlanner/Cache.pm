@@ -110,6 +110,37 @@ around 'join_plans' => sub {
 				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(triples => [$lhs, $rhs],
 																	 $active_graphs, $default_graphs));
 			}
+			elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
+				if (${$rhs->children}[0]>isa('Attean::Plan::Quad')) {
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[0]]
+																								 # TODO
+																								);
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[1]]));
+				} elsif (${$rhs->children}[1]>isa('Attean::Plan::Quad')) {
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[1]]
+																								 # TODO
+																								);
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]]));
+				} else {
+					# If we get here, both children of $rhs are Table (if not, it is a bug)
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$lhs], [$rhs])); # TODO: Is this correct?
+				}
+			}
+			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
+				if (${$lhs->children}[0]>isa('Attean::Plan::Quad')) {
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[0]]
+																								 # TODO
+																								);
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[1]]));
+				} elsif (${$lhs->children}[1]>isa('Attean::Plan::Quad')) {
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[1]]
+																								 # TODO
+																								);
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]]));
+				} else {
+					# If we get here, both children of $rhs are Table (if not, it is a bug)
+					push(@plans, $orig->($self, $active_graphs, $default_graphs, [$rhs], [$lhs])); # TODO: Is this correct?
+				}
 		}
 	}
 	unless (@plans) {
