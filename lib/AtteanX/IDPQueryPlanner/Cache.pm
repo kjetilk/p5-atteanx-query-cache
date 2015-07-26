@@ -13,7 +13,6 @@ use Moo;
 use Types::Standard qw(InstanceOf);
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
-use AtteanX::Store::SPARQL::Plan::Triple;
 
 extends 'Attean::IDPQueryPlanner';
 
