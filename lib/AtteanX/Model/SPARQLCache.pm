@@ -16,7 +16,9 @@ has 'store'    => (
 						 handles => { size => 'size' ,
 										  get_quads => 'get_triples',
 										  count_quads => 'count_triples',
-										  cost_for_plan => 'cost_for_plan' }
+										  cost_for_plan => 'cost_for_plan',
+										  get_sparql => 'get_sparql'
+										}
 						);
 
 
