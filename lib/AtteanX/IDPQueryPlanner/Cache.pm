@@ -78,6 +78,47 @@ sub _normalize_pattern {
 	return triplepattern(@keyterms);
 }
 
+# Gather patterns into larger BGPs
+around 'join_plans' => sub {
+	my $orig = shift;
+	my @params = @_;
+	my $self	= shift;
+	my $active_graphs	= shift;
+	my $default_graphs	= shift;
+	my $lplans			= shift;
+	my $rplans			= shift;
+	my @plans;
+	foreach my $lhs (@{ $lplans }) {
+		foreach my $rhs (@{ $rplans }) {
+			if ($lhs->isa('Attean::Plan::Quad') &&
+				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				$rhs->add_triples($lhs);
+				push(@plans, $rhs);
+			}
+			elsif ($rhs->isa('Attean::Plan::Quad') &&
+				 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				$lhs->add_triples($rhs);
+				push(@plans, $lhs);
+			}
+			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
+				 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				$lhs->add_triples($rhs->triples);
+				push(@plans, $lhs);
+			}
+			elsif ($rhs->isa('Attean::Plan::Quad') &&
+				 $lhs->isa('Attean::Plan::Quad')) {
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(triples => [$lhs, $rhs],
+																	 $active_graphs, $default_graphs));
+			}
+		}
+	}
+	unless (@plans) {
+		@plans = $orig->(@params);
+	}
+	return @plans;
+};
+
+
 1;
 
 __END__
