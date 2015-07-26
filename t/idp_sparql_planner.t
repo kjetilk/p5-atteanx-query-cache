@@ -172,9 +172,28 @@ does_ok($p, 'Attean::API::CostPlanner');
 		isa_ok(${$plan->children}[0], 'Attean::Plan::Quad');
 		is(${$plan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
 		isa_ok(${$plan->children}[1], 'Attean::Plan::Table');
-
-
 	};
+
+	subtest '5-triple BGP with join variable with cache two cached' => sub {
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
+		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		foreach my $plan (@plans) {
+			warn $plan->as_string . "\n";
+		}
+		my $plan = $plans[0];
+		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
+		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
+		ok($plan->distinct);
+		foreach my $cplan (@{$plan->children}) {
+			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+		}
+		# TODO: What will the real join order be:
+		isa_ok(${$plan->children}[0], 'Attean::Plan::Quad');
+		is(${$plan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
+		isa_ok(${$plan->children}[1], 'Attean::Plan::Table');
+	};
+
+
 
 }
 
