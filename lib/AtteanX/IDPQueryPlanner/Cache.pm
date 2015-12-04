@@ -93,15 +93,15 @@ around 'join_plans' => sub {
 		foreach my $rhs (@{ $rplans }) {
 			if ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs->quads]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, @{ $rhs->quads || []} ]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, $lhs->quads]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, @{ $lhs->quads || []} ]));
 			}
 			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs->quads, $rhs->quads]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [@{ $lhs->quads || []} , @{ $rhs->quads || []} ]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('Attean::Plan::Quad')) {
