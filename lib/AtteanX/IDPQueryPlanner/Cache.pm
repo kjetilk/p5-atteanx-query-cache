@@ -58,7 +58,6 @@ around 'access_plans' => sub {
 		push(@plans, Attean::Plan::Table->new( variables => \@vars,
 															rows => \@rows,
 															distinct => 0,
-															in_scope_variables => [ map {$_->value} @vars],
 															ordered => [] ));
 	}
 
@@ -94,15 +93,15 @@ around 'join_plans' => sub {
 		foreach my $rhs (@{ $rplans }) {
 			if ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, Attean::Plan::Quad->new($rhs->quads)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs->quads]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, Attean::Plan::Quad->new($lhs->quads)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, $lhs->quads]));
 			}
 			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [Attean::Plan::Quad->new($lhs->quads), Attean::Plan::Quad->new($rhs->quads)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs->quads, $rhs->quads]));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('Attean::Plan::Quad')) {
