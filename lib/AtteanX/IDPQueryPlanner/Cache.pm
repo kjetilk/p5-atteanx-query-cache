@@ -37,11 +37,13 @@ around 'access_plans' => sub {
 		my $parser = Attean->get_parser('NTriples')->new;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
+			# Then, the cache resulted from a TP with just one variable
 			foreach my $row (@{$cached}) { # TODO: arbitrary terms
 				my $term = $parser->parse_term_from_string($row);
 				push(@rows, Attean::Result->new(bindings => { $vars[0]->value => $term }));
 			}
 		} elsif (ref($cached) eq 'HASH') {
+			# Cache resulted from TP with two variables
 			while (my($first, $second) = each(%{$cached})) {
 				my $term1 = $parser->parse_term_from_string($first);
 				foreach my $term (@{$second}) {
