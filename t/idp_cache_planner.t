@@ -26,7 +26,9 @@ package TestStore {
 		my $plan	= shift;
 		if ($plan->isa('Attean::Plan::Quad')) {
 			return 3;
-		}
+		} elsif ($plan->isa('Attean::Plan::Table')) {
+			return 2;
+		} 
 		return;
 	}
 };
@@ -162,7 +164,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
+		does_ok($plan, 'Attean::API::Plan::Join');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
