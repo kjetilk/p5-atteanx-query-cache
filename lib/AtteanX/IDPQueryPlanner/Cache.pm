@@ -13,6 +13,7 @@ use Moo;
 use Types::Standard qw(InstanceOf);
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
+use AtteanX::Store::SPARQL::Plan::BGP;
 
 extends 'Attean::IDPQueryPlanner';
 
@@ -93,55 +94,47 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
-		#print "\nLeft: " . $lhs->as_string;
 		foreach my $rhs (@{ $rplans }) {
-		#	print "\nRight: " . $rhs->as_string;
-			if ($lhs->isa('Attean::Plan::Quad') &&
+			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
+				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs));
+			 } elsif ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, @{ $rhs->quads || []} ], distinct => 0, ordered => [], 
-																					 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, @{ $rhs->quads || []} ], distinct => 0, ordered => []));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, @{ $lhs->quads || []} ], distinct => 0, ordered => [],
-																					 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, @{ $lhs->quads || []} ], distinct => 0, ordered => []));
 			}
 			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [@{ $lhs->quads || []} , @{ $rhs->quads || []} ], distinct => 0, ordered => [],
-																					 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [@{ $lhs->quads || []} , @{ $rhs->quads || []} ], distinct => 0, ordered => []));
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
 					 $lhs->isa('Attean::Plan::Quad')) {
-				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs], distinct => 0, ordered => [],
-																					 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]));
+				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs], distinct => 0, ordered => []));
 			}
 			elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
 				if (${$rhs->children}[0]>isa('Attean::Plan::Quad')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[0]], distinct => 0, ordered => [],
-																								 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[1]]), @restargs);
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[0]], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[1]], @restargs));
 				} elsif (${$rhs->children}[1]>isa('Attean::Plan::Quad')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[1]], distinct => 0, ordered => [],
-																								 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]]), @restargs);
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[1]], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]], @restargs));
 				} else {
 					# If we get here, both children of $rhs are Table (if not, it is a bug)
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs]), @restargs); # TODO: Is this correct?
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
 				if (${$lhs->children}[0]>isa('Attean::Plan::Quad')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[0]], distinct => 0, ordered => [],
-																								 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[1]]), @restargs);
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[0]], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[1]], @restargs));
 				} elsif (${$lhs->children}[1]>isa('Attean::Plan::Quad')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[1]], distinct => 0, ordered => [],
-																								 in_scope_variables => [Attean::API::Plan->in_scope_variables_union($lhs, $rhs)]);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]]), @restargs);
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[1]], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]], @restargs));
 				} else {
 					# If we get here, both children of $rhs are Table (if not, it is a bug)
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs]), @restargs); # TODO: Is this correct?
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs)); # TODO: Is this correct?
 				}
 			}
 		}
