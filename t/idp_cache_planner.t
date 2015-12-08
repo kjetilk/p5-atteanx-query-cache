@@ -28,6 +28,8 @@ package TestStore {
 			return 3;
 		} elsif ($plan->isa('Attean::Plan::Table')) {
 			return 2;
+		} elsif ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+			return 20;
 		} 
 		return;
 	}
