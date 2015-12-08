@@ -80,7 +80,6 @@ sub _normalize_pattern {
 	return triplepattern(@keyterms);
 }
 
-use Carp::Always;
 # Gather patterns into larger BGPs
 around 'join_plans' => sub {
 	my $orig = shift;
@@ -94,7 +93,9 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
+	#	warn "\nLeft: " . $lhs->as_string;
 		foreach my $rhs (@{ $rplans }) {
+	#		warn "\n\tRight: " . $rhs->as_string;
 			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs));
 			 } elsif ($lhs->isa('Attean::Plan::Quad') &&
@@ -114,10 +115,10 @@ around 'join_plans' => sub {
 				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, $rhs], distinct => 0, ordered => []));
 			}
 			elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
-				if (${$rhs->children}[0]>isa('Attean::Plan::Quad')) {
+				if (${$rhs->children}[0]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[0]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[1]], @restargs));
-				} elsif (${$rhs->children}[1]>isa('Attean::Plan::Quad')) {
+				} elsif (${$rhs->children}[1]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[1]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]], @restargs));
 				} else {
@@ -126,10 +127,10 @@ around 'join_plans' => sub {
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
-				if (${$lhs->children}[0]>isa('Attean::Plan::Quad')) {
+				if (${$lhs->children}[0]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[0]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[1]], @restargs));
-				} elsif (${$lhs->children}[1]>isa('Attean::Plan::Quad')) {
+				} elsif (${$lhs->children}[1]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[1]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]], @restargs));
 				} else {
@@ -139,6 +140,13 @@ around 'join_plans' => sub {
 			}
 		}
 	}
+
+	my $i = 0;
+	# foreach my $pl (@plans) {
+	# 	print "Result $i :" . $pl->as_string;
+	# 	$i++;
+	# }
+
 	unless (@plans) {
 		@plans = $orig->(@params);
 	}
