@@ -132,10 +132,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 4, 'Got four plans');
+		is(scalar @plans, 5, 'Got 5 plans'); # TODO: Two seems the same
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
+		does_ok($plan, 'Attean::API::Plan::Join');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
@@ -146,11 +146,13 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 4, 'Got four plans');
+		is(scalar @plans, 2, 'Got two plans');
+		foreach my $plan (@plans) {
+			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
+		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
-		ok($plan->distinct);
+		like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 			isa_ok($cplan, 'Attean::Plan::Quad');
@@ -163,7 +165,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		is(scalar @plans, 4, 'Got four plans');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
+		does_ok($plan, 'Attean::API::Plan::Join');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
@@ -178,13 +180,12 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		foreach my $plan (@plans) {
-			warn $plan->as_string . "\n";
+#			warn $plan->as_string . "\n";
 		}
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		isa_ok($plan, 'Attean::Plan::NestedLoopJoin');
-		ok($plan->distinct);
+		does_ok($plan, 'Attean::API::Plan::Join');
 		foreach my $cplan (@{$plan->children}) {
+#			warn $cplan->as_string;
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 		}
 		# TODO: What will the real join order be:
