@@ -124,7 +124,7 @@ around 'join_plans' => sub {
 				} elsif (${$rhs->children}[0]->isa('Attean::Plan::Table') && ${$rhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
 				} else {
-					confess 'Probably a bug! Children plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
+					confess 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
@@ -137,7 +137,7 @@ around 'join_plans' => sub {
 				} elsif (${$lhs->children}[0]->isa('Attean::Plan::Table') && ${$lhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
 				} else {
-					confess 'Probably a bug! Children plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
+					confess 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
 				}
 			}
 		}
