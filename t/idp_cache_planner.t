@@ -11,7 +11,7 @@ use Attean::RDF;
 use AtteanX::IDPQueryPlanner::Cache;
 use AtteanX::Store::Memory;
 use Data::Dumper;
-use Carp::Always;
+#use Carp::Always;
 
 
 package TestStore {
