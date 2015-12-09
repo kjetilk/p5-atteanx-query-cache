@@ -167,7 +167,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 			warn $plan->as_string;
 		}
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan::Join', '2-triple BGP'););
+		does_ok($plan, 'Attean::API::Plan::Join', '2-triple BGP');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
