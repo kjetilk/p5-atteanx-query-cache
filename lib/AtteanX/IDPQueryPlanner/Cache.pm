@@ -121,9 +121,10 @@ around 'join_plans' => sub {
 				} elsif (${$rhs->children}[1]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, ${$rhs->children}[1]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]], @restargs));
-				} else {
-					# If we get here, both children of $rhs are Table (if not, it is a bug)
+				} elsif (${$rhs->children}[0]->isa('Attean::Plan::Table') && ${$rhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
+				} else {
+					confess 'Probably a bug! Children plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
@@ -133,9 +134,10 @@ around 'join_plans' => sub {
 				} elsif (${$lhs->children}[1]->isa('Attean::Plan::Quad')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs, ${$lhs->children}[1]], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]], @restargs));
+				} elsif (${$lhs->children}[0]->isa('Attean::Plan::Table') && ${$lhs->children}[1]->isa('Attean::Plan::Table')) {
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
 				} else {
-					# If we get here, both children of $rhs are Table (if not, it is a bug)
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs)); # TODO: Is this correct?
+					confess 'Probably a bug! Children plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
 				}
 			}
 		}
