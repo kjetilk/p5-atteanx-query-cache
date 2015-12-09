@@ -134,7 +134,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 4, 'Got 4 plans'); # TODO: Two seems the same
 		foreach my $plan (@plans) {
-			warn $plan->as_string;
+#			warn $plan->as_string;
 			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
 			ok($plan->distinct, 'Plans should be distinct');
 			foreach my $cplan (@{$plan->children}) {
@@ -165,7 +165,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 4, 'Got four plans');
+		is(scalar @plans, 2, 'Got two plans');
 		foreach my $plan (@plans) {
 			warn $plan->as_string;
 		}
