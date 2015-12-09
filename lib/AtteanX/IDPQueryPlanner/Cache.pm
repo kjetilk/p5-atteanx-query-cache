@@ -93,12 +93,18 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
-	#	warn "\nLeft: " . $lhs->as_string;
+		warn "\nLeft: " . $lhs->as_string;
 		foreach my $rhs (@{ $rplans }) {
-	#		warn "\n\tRight: " . $rhs->as_string;
+			warn "\n\tRight: " . $rhs->as_string;
 			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs));
-			 } elsif ($lhs->isa('Attean::Plan::Quad') &&
+			} elsif ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Quad'))) {
+				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$rhs], distinct => 0, ordered => []);
+				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
+			} elsif ($rhs->isa('Attean::Plan::Table') && ($lhs->isa('Attean::Plan::Quad'))) {
+				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs], distinct => 0, ordered => []);
+				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$new_bgp_plan], @restargs));
+			} elsif ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 				push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(quads => [$lhs, @{ $rhs->quads || []} ], distinct => 0, ordered => []));
 			}
