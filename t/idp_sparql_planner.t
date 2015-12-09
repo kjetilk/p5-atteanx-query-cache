@@ -132,15 +132,18 @@ does_ok($p, 'Attean::API::CostPlanner');
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 5, 'Got 5 plans'); # TODO: Two seems the same
-		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan::Join');
-		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
-		ok($plan->distinct);
-		foreach my $cplan (@{$plan->children}) {
-			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-			isa_ok($cplan, 'Attean::Plan::Table');
+		is(scalar @plans, 4, 'Got 4 plans'); # TODO: Two seems the same
+		foreach my $plan (@plans) {
+			warn $plan->as_string;
+			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
+			ok($plan->distinct, 'Plans should be distinct');
+			foreach my $cplan (@{$plan->children}) {
+				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+				isa_ok($cplan, 'Attean::Plan::Table', 'All children should be Table');
+			}
 		}
+		my $plan = $plans[0];
+		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
 	};
 
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
@@ -155,7 +158,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-			isa_ok($cplan, 'Attean::Plan::Quad');
+			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
 		}
 	};
 
