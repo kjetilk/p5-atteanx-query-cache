@@ -134,8 +134,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans'); # TODO: Two seems the same
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
 		does_ok($plan, 'Attean::API::Plan::Join');
+		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
@@ -163,9 +163,11 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 4, 'Got four plans');
+		foreach my $plan (@plans) {
+			warn $plan->as_string;
+		}
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		does_ok($plan, 'Attean::API::Plan::Join');
+		does_ok($plan, 'Attean::API::Plan::Join', '2-triple BGP'););
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
