@@ -132,7 +132,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 4, 'Got 4 plans'); # TODO: Two seems the same
+		is(scalar @plans, 2, 'Got just 2 plans');
 		foreach my $plan (@plans) {
 #			warn $plan->as_string;
 			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
