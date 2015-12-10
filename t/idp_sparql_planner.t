@@ -223,7 +223,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '3-triple BGP with predicate variable' => sub {
 		$cache->set('<a> ?predicate ?object .', {'<p>' => ['<http://example.org/bar>'],
 															'<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $t, $y]);
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
 		foreach my $plan (@plans) {
