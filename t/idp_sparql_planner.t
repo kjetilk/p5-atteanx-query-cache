@@ -165,20 +165,19 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 2, 'Got two plans');
-		foreach my $plan (@plans) {
-			warn $plan->as_string;
-		}
+		is(scalar @plans, 4, 'Got four plans'); # TODO: Two are identical
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join', '2-triple BGP');
-		ok($plan->distinct);
+		ok($plan->distinct, 'Distinct OK');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 		}
 		# TODO: What will the real join order be:
-		isa_ok(${$plan->children}[0], 'Attean::Plan::Quad');
-		is(${$plan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
-		isa_ok(${$plan->children}[1], 'Attean::Plan::Table');
+		isa_ok(${$plan->children}[0], 'Attean::Plan::Table', 'Should join on Table first');
+		my $bgpplan = ${$plan->children}[1];
+		isa_ok($bgpplan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Then on SPARQL BGP');
+		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
+		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
 	};
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
