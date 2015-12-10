@@ -39,6 +39,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	my $x		= triple(variable('s'), iri('q'), iri('a'));
 	my $y		= triple(variable('o'), iri('b'), literal('2'));
 	my $z		= triple(variable('a'), iri('c'), variable('s'));
+	my $s		= triple(iri('a'), variable('p'), variable('o'));
 
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");
@@ -212,6 +213,17 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '3-triple BGP chain with cache on two' => sub {
 		$cache->set('?subject <b> "2" .', ['<http://example.com/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
+		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		does_ok($plans[0], 'Attean::API::Plan::Join');
+		foreach my $plan (@plans) {
+			warn $plan->as_string . "\n";
+		}
+	};
+
+	subtest '3-triple BGP with predicate variable' => sub {
+		$cache->set('<a> ?predicate ?object .', {'<p>' => ['<http://example.org/bar>'],
+															'<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $t, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
 		foreach my $plan (@plans) {
