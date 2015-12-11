@@ -93,9 +93,9 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
-#		warn "\nLeft: " . $lhs->as_string;
+		warn "\nLeft: " . $lhs->as_string;
 		foreach my $rhs (@{ $rplans }) {
-#			warn "\n\tRight: " . $rhs->as_string;
+			warn "\n\tRight: " . $rhs->as_string;
 			my @vars	= (@{ $lhs->in_scope_variables }, @{ $rhs->in_scope_variables });
 			my %vars;
 			my %join_vars;
@@ -145,8 +145,8 @@ around 'join_plans' => sub {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]], @restargs));
 				} elsif (${$rhs->children}[0]->isa('Attean::Plan::Table') && ${$rhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
-				} else {
-		#			warn 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
+				#} else {
+				#	warn 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
@@ -158,8 +158,8 @@ around 'join_plans' => sub {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]], @restargs));
 				} elsif (${$lhs->children}[0]->isa('Attean::Plan::Table') && ${$lhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
-				} else {
-		#			warn 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
+				#} else {
+				#	warn 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
 				}
 			}
 		}
