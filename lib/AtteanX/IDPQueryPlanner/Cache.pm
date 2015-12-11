@@ -145,8 +145,12 @@ around 'join_plans' => sub {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$rhs->children}[0]], @restargs));
 				} elsif (${$rhs->children}[0]->isa('Attean::Plan::Table') && ${$rhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
-				#} else {
-				#	warn 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
+				} else {
+					# Now, deal with any bare quads
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
+
+					#	warn 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
@@ -158,10 +162,15 @@ around 'join_plans' => sub {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [${$lhs->children}[0]], @restargs));
 				} elsif (${$lhs->children}[0]->isa('Attean::Plan::Table') && ${$lhs->children}[1]->isa('Attean::Plan::Table')) {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs)); # TODO: Is this correct?
-				#} else {
-				#	warn 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
+				} else {
+					# Now, deal with any bare quads
+					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
+
+					#	warn 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
 				}
 			}
+
 		}
 	}
 
