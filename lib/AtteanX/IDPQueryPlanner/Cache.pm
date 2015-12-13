@@ -16,6 +16,7 @@ use Carp;
 use AtteanX::Store::SPARQL::Plan::BGP;
 
 extends 'Attean::IDPQueryPlanner';
+with 'AtteanX::API::JoinRotatingPlanner';
 
 around 'access_plans' => sub {
 	my $orig = shift;
@@ -80,6 +81,30 @@ sub _normalize_pattern {
 	return triplepattern(@keyterms);
 }
 
+sub _join_vars {
+	my ($self, $lhs, $rhs) = @_;
+	my @vars	= (@{ $lhs->in_scope_variables }, @{ $rhs->in_scope_variables });
+	my %vars;
+	my %join_vars;
+	foreach my $v (@vars) {
+		if ($vars{$v}++) {
+			$join_vars{$v}++;
+		}
+	}
+	return keys %join_vars;	
+}
+
+sub coalesce {
+	my $self	= shift;
+	my $p		= shift;
+	my ($lhs, $rhs)	= @{ $p->children };
+	if ($lhs->isa('Attean::Plan::Quad') and $rhs->isa('Attean::Plan::Quad')) {
+		
+		return AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, $rhs], distinct => 0);
+	}
+	return $p;
+}
+
 # Gather patterns into larger BGPs
 around 'join_plans' => sub {
 	my $orig = shift;
@@ -93,18 +118,10 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
-		warn "\nLeft: " . $lhs->as_string;
+#		warn "\nLeft: " . $lhs->as_string;
 		foreach my $rhs (@{ $rplans }) {
-			warn "\n\tRight: " . $rhs->as_string;
-			my @vars	= (@{ $lhs->in_scope_variables }, @{ $rhs->in_scope_variables });
-			my %vars;
-			my %join_vars;
-			foreach my $v (@vars) {
-				if ($vars{$v}++) {
-					$join_vars{$v}++;
-				}
-			}
-			my @join_vars	= keys %join_vars;
+#			warn "\n\tRight: " . $rhs->as_string;
+			my @join_vars = $self->_join_vars($lhs, $rhs);
 
 			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
 #				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs)); # Most general solution
