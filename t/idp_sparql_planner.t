@@ -180,14 +180,15 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgpplan = ${$plan->children}[1];
 		isa_ok($bgpplan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Then on SPARQL BGP');
 		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
-		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
+#		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
 	};
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
+		warn "DAAAAAAAAAAAHU";
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		foreach my $plan (@plans) {
-			warn $plan->as_string . "\n";
+			die $plan->as_string . "\n";
 		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
@@ -206,7 +207,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
 		foreach my $plan (@plans) {
-			warn $plan->as_string . "\n";
+#			warn $plan->as_string . "\n";
 		}
 	};
 
@@ -220,6 +221,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		}
 	};
 
+
 	subtest '3-triple BGP with predicate variable' => sub {
 		$cache->set('<a> ?predicate ?object .', {'<p>' => ['<http://example.org/bar>'],
 															'<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
@@ -227,7 +229,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
 		foreach my $plan (@plans) {
-			warn $plan->as_string . "\n";
+#			warn $plan->as_string . "\n";
 		}
 	};
 
