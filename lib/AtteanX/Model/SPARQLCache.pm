@@ -23,20 +23,18 @@ sub plans_for_algebra {
 }
 
 sub cost_for_plan { # TODO: Do this for real
-	my $self	= shift;
-	my $plan	= shift;
-	if ($plan->isa('Attean::Plan::Quad')) {
-		return 3;
-	} elsif ($plan->isa('Attean::Plan::Table')) {
-		return 2;
-	} elsif ($plan->isa('Attean::Plan::HashJoin')) {
-		return 2;
-	} elsif ($plan->isa('Attean::Plan::NestedLoopJoin')) {
-		return 3;
-	} elsif ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-		return 20;
-	}
-	return;
+ 	my $self	= shift;
+ 	my $plan	= shift;
+ 	if ($plan->does('Attean::API::Plan::Join') && ${$plan->children}[0]->isa('Attean::Plan::Quad') && ${$plan->children}[1]->isa('Attean::Plan::Quad')) {
+ 		return 1;
+ 	} elsif ($plan->isa('Attean::Plan::Table')) {
+ 		return 2;
+# 	} elsif ($plan->isa('Attean::Plan::HashJoin')) {
+# 		return 2;
+# 	} elsif ($plan->isa('Attean::Plan::NestedLoopJoin')) {
+# 		return 3;
+ 	}
+ 	return;
 }
 
 1;
