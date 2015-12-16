@@ -26,7 +26,7 @@ sub cost_for_plan { # TODO: Do this for real
  	my $self	= shift;
  	my $plan	= shift;
  	if ($plan->does('Attean::API::Plan::Join') && ${$plan->children}[0]->isa('Attean::Plan::Quad') && ${$plan->children}[1]->isa('Attean::Plan::Quad')) {
- 		return 1;
+ 		return 10000;
  	} elsif ($plan->isa('Attean::Plan::Table')) {
  		return 2;
 # 	} elsif ($plan->isa('Attean::Plan::HashJoin')) {
