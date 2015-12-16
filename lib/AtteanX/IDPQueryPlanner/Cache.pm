@@ -94,13 +94,65 @@ sub _join_vars {
 	return keys %join_vars;	
 }
 
-sub coalesce {
+# Only allow rotation on joins who have one child matching:
+# - Either a Attean::Plan::Quad or AtteanX::Store::SPARQL::Plan::BGP
+# and the other child being a join
+# 
+sub allow_join_rotation {
+	my $self	= shift;
+	my $join	= shift;
+	my $quads	= 0;
+	my $joins	= 0;
+	my @grandchildren;
+# 	warn "Seeking to rotate:\n" . $join->as_string;
+	foreach my $p (@{ $join->children }) {
+		$quads++ if ($p->isa('Attean::Plan::Quad'));
+		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+		if ($p->does('Attean::API::Plan::Join')) {
+			$joins++;
+			push(@grandchildren, @{ $p->children });
+		}
+	}
+	return 0 unless ($joins == 1);
+	return 0 unless ($quads == 1);
+	foreach my $p (@grandchildren) {
+		$quads++ if ($p->isa('Attean::Plan::Quad'));
+		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+	}
+	
+	if ($quads >= 2) {
+# 		warn "Allowing rotation:\n" . $join->as_string;
+		return 1;
+	} else {
+# 		warn "Disallowing rotation:\n" . $join->as_string;
+		return 0;
+	}
+}
+
+sub coalesce_rotated_join {
 	my $self	= shift;
 	my $p		= shift;
+	my @quads;
 	my ($lhs, $rhs)	= @{ $p->children };
-	if (($lhs->isa('Attean::Plan::Quad') and $rhs->isa('Attean::Plan::Quad'))) {
-		 #&& (scalar $self->_join_vars($lhs, $rhs) > 0)) {
-		return AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, $rhs], distinct => 0);
+	my @join_vars	= $self->_join_vars($lhs, $rhs);
+	if (scalar(@join_vars)) {
+		foreach my $p ($lhs, $rhs) {
+			if ($p->isa('Attean::Plan::Quad')) {
+				push(@quads, $p);
+			} elsif ($p->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+				push(@quads, @{ $p->children });
+			} else {
+				return $p; # bail-out
+			}
+		}
+		
+		my $count	= scalar(@quads);
+		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
+		if ($count >= 3) {
+			warn "Coalescing $lhs and $rhs into BGP with $count quads\n";
+			warn $c->as_string;
+		}
+		return $c;
 	}
 	return $p;
 }
