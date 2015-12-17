@@ -188,7 +188,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		warn "DAAAAAAAAAAAHU";
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		foreach my $plan (@plans) {
-			die $plan->as_string . "\n";
+			warn "Result: ". $plan->as_string . "\n";
 		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
@@ -201,7 +201,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		is(${$plan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
 		isa_ok(${$plan->children}[1], 'Attean::Plan::Table');
 	};
-
+die "OMFG";
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
