@@ -16,7 +16,7 @@ use Carp;
 use AtteanX::Store::SPARQL::Plan::BGP;
 
 extends 'Attean::IDPQueryPlanner';
-with 'AtteanX::API::JoinRotatingPlanner';
+with 'AtteanX::API::JoinRotatingPlanner', 'MooX::Log::Any';
 
 around 'access_plans' => sub {
 	my $orig = shift;
@@ -104,7 +104,7 @@ sub allow_join_rotation {
 	my $quads	= 0;
 	my $joins	= 0;
 	my @grandchildren;
-# 	warn "Seeking to rotate:\n" . $join->as_string;
+ 	$self->log->debug("Seeking to rotate:\n" . $join->as_string);
 	foreach my $p (@{ $join->children }) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
 		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
@@ -121,10 +121,10 @@ sub allow_join_rotation {
 	}
 	
 	if ($quads >= 2) {
-# 		warn "Allowing rotation:\n" . $join->as_string;
+		$self->log->debug("Allowing rotation:\n" . $join->as_string);
 		return 1;
 	} else {
-# 		warn "Disallowing rotation:\n" . $join->as_string;
+ 		$self->log->debug("Disallowing rotation:\n" . $join->as_string);
 		return 0;
 	}
 }
@@ -148,10 +148,10 @@ sub coalesce_rotated_join {
 		
 		my $count	= scalar(@quads);
 		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
-		# if ($count >= 3) {
-		# 	warn "Coalescing $lhs and $rhs into BGP with $count quads\n";
-		# 	warn $c->as_string;
-		# }
+		if ($self->log->is_debug && $count >= 3) {
+		 	$self->log->debug("Coalescing $lhs and $rhs into BGP with $count quads");
+		 	$self->log->trace($c->as_string);
+		}
 		return $c;
 	}
 	return $p;
@@ -170,9 +170,9 @@ around 'join_plans' => sub {
 	my @restargs      = @_;
 	my @plans;
 	foreach my $lhs (@{ $lplans }) {
-#		warn "\nLeft: " . $lhs->as_string;
+		$self->log->trace("BGP Constructing Left:\n" . $lhs->as_string);
 		foreach my $rhs (@{ $rplans }) {
-#			warn "\n\tRight: " . $rhs->as_string;
+			$self->log->trace("BGP Constructing Right: " . $rhs->as_string);
 			my @join_vars = $self->_join_vars($lhs, $rhs);
 
 			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
@@ -218,8 +218,7 @@ around 'join_plans' => sub {
 					# Now, deal with any bare quads
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
-
-					#	warn 'Probably a bug! RHS child plans were ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]);
+					$self->log->debug('RHS child plans are ' . ref(${$rhs->children}[0]) . ' and ' . ref(${$rhs->children}[1]));
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
@@ -235,19 +234,20 @@ around 'join_plans' => sub {
 					# Now, deal with any bare quads
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
-
-					#	warn 'Probably a bug! LHS child plans were ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]);
+					$self->log->debug('LHS child plans are ' . ref(${$lhs->children}[0]) . ' and ' . ref(${$lhs->children}[1]));
 				}
 			}
 
 		}
 	}
 
-	my $i = 0;
-	# foreach my $pl (@plans) {
-	# 	print "Result $i :" . $pl->as_string;
-	# 	$i++;
-	# }
+	if ($self->log->is_trace) {
+		my $i = 0;
+		foreach my $pl (@plans) {
+			$self->log->trace("Result $i :" . $pl->as_string);
+			$i++;
+		}
+	}
 
 	unless (@plans) {
 		@plans = $orig->(@params);
