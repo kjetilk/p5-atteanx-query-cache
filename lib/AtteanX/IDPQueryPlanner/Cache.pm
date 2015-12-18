@@ -121,10 +121,10 @@ sub allow_join_rotation {
 	}
 	
 	if ($quads >= 2) {
-		$self->log->debug('Allowing rotation.');
+		$self->log->debug("Allowing rotation for $quads quads.");
 		return 1;
 	} else {
- 		$self->log->debug('Disallowing rotation.');
+ 		$self->log->debug("Disallowing rotation, just $quads quad.");
 		return 0;
 	}
 }
