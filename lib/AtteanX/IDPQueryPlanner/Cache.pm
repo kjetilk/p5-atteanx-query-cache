@@ -172,7 +172,7 @@ around 'join_plans' => sub {
 	foreach my $lhs (@{ $lplans }) {
 		$self->log->trace("BGP Constructing Left:\n" . $lhs->as_string);
 		foreach my $rhs (@{ $rplans }) {
-			$self->log->trace("BGP Constructing Right: " . $rhs->as_string);
+			$self->log->trace("BGP Constructing Right:\n" . $rhs->as_string);
 			my @join_vars = $self->_join_vars($lhs, $rhs);
 
 			if ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Table'))) {
