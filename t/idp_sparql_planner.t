@@ -13,6 +13,8 @@ use AtteanX::Store::Memory;
 use Data::Dumper;
 use AtteanX::Store::SPARQL;
 use AtteanX::Model::SPARQLCache;
+use Log::Any::Adapter;
+Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr');
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
