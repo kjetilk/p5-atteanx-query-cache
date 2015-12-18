@@ -241,14 +241,6 @@ around 'join_plans' => sub {
 		}
 	}
 
-	if ($self->log->is_trace) {
-		my $i = 0;
-		foreach my $pl (@plans) {
-			$self->log->trace("Result $i :" . $pl->as_string);
-			$i++;
-		}
-	}
-
 	unless (@plans) {
 		@plans = $orig->(@params);
 	}
