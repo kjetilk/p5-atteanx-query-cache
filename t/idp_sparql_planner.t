@@ -12,6 +12,8 @@ It may come in handy to enable logging for debugging purposes, e.g.:
 
   LOG_ADAPTER=Screen DEBUG=1 prove -lv t/idp_sparql_planner.t
 
+This requires that L<Log::Any::Adapter::Screen> is installed.
+
 =head1 AUTHOR
 
 Kjetil Kjernsmo E<lt>kjetilk@cpan.orgE<gt>.
