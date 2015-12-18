@@ -104,7 +104,7 @@ sub allow_join_rotation {
 	my $quads	= 0;
 	my $joins	= 0;
 	my @grandchildren;
- 	$self->log->debug("Seeking to rotate:\n" . $join->as_string);
+ 	$self->log->trace("Seeking to rotate:\n" . $join->as_string);
 	foreach my $p (@{ $join->children }) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
 		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
@@ -121,10 +121,10 @@ sub allow_join_rotation {
 	}
 	
 	if ($quads >= 2) {
-		$self->log->debug("Allowing rotation:\n" . $join->as_string);
+		$self->log->debug('Allowing rotation.');
 		return 1;
 	} else {
- 		$self->log->debug("Disallowing rotation:\n" . $join->as_string);
+ 		$self->log->debug('Disallowing rotation.');
 		return 0;
 	}
 }
