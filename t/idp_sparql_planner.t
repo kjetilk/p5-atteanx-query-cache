@@ -1,3 +1,31 @@
+=pod
+
+=encoding utf-8
+
+=head1 PURPOSE
+
+Test that produced plans are correct.
+
+=head1 SYNOPSIS
+
+It may come in handy to enable logging for debugging purposes, e.g.:
+
+  LOG_ADAPTER=Screen DEBUG=1 prove -lv t/idp_sparql_planner.t
+
+=head1 AUTHOR
+
+Kjetil Kjernsmo E<lt>kjetilk@cpan.orgE<gt>.
+
+=head1 COPYRIGHT AND LICENCE
+
+This software is copyright (c) 2015 by Kjetil Kjernsmo.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+
+=cut
+
 use v5.14;
 use autodie;
 use utf8;
