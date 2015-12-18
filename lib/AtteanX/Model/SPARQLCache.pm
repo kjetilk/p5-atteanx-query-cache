@@ -30,9 +30,17 @@ sub cost_for_plan { # TODO: Do this for real
 		if (${$plan->children}[0]->isa('Attean::Plan::Quad') && ${$plan->children}[1]->isa('Attean::Plan::Quad')) {
 			return $joinfactor * 1000
 		} elsif (${$plan->children}[0]->isa('Attean::Plan::Table') && ${$plan->children}[1]->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-			return int(${$plan->children}[1]->cost * $joinfactor / 20);
+			if (defined(my $cost = ${$plan->children}[1]->cost)) {
+				return int($cost * $joinfactor / 20);
+			} else {
+				return;
+			}
 		} elsif (${$plan->children}[1]->isa('Attean::Plan::Table') && ${$plan->children}[0]->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-			return int(${$plan->children}[0]->cost * $joinfactor / 15);
+			if (defined(my $cost = ${$plan->children}[0]->cost)) {
+				return int($cost * $joinfactor / 15);
+			} else {
+				return;
+			}
 		}
 	} elsif ($plan->isa('Attean::Plan::Table')) {
  		return 2;
