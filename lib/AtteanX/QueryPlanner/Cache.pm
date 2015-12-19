@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 
-package AtteanX::IDPQueryPlanner::Cache;
+package AtteanX::QueryPlanner::Cache;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
@@ -15,7 +15,9 @@ use Attean::RDF qw(triplepattern variable iri);
 use Carp;
 use AtteanX::Store::SPARQL::Plan::BGP;
 
-extends 'Attean::IDPQueryPlanner';
+extends 'Attean::QueryPlanner';
+with 'Attean::API::NaiveJoinPlanner', 'Attean::API::SimpleCostPlanner';
+
 with 'AtteanX::API::JoinRotatingPlanner', 'MooX::Log::Any';
 
 around 'access_plans' => sub {
@@ -258,7 +260,7 @@ __END__
 
 =head1 NAME
 
-AtteanX::IDPQueryPlanner::Cache - Extending the query planner with cache and SPARQL support
+AtteanX::QueryPlanner::Cache - Extending the query planner with cache and SPARQL support
 
 =head1 SYNOPSIS
 
