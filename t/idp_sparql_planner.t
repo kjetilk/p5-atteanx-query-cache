@@ -183,10 +183,11 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
-		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $x]);
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 2, 'Got two plans');
+		is(scalar @plans, 1, 'Got 1 plan');
 		foreach my $plan (@plans) {
+#			warn $plan->as_string;
 			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
 		}
 		my $plan = $plans[0];
