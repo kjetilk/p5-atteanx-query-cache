@@ -37,7 +37,7 @@ around 'access_plans' => sub {
 	my $keypattern = $self->_normalize_pattern($pattern);
 	my $cached = $model->cache->get($keypattern->tuples_string);
 	if (defined($cached)) {
-		# We found data in the cache
+		$self->log->debug("Found data in the cache for " . $keypattern->tuples_string);
 		my $parser = Attean->get_parser('NTriples')->new;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
@@ -63,6 +63,8 @@ around 'access_plans' => sub {
 															rows => \@rows,
 															distinct => 0,
 															ordered => [] ));
+	} else {
+		$self->log->debug("Found no data in the cache for " . $keypattern->tuples_string);
 	}
 
 	return @plans;
