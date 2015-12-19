@@ -44,7 +44,7 @@ use Data::Dumper;
 use AtteanX::Store::SPARQL;
 use AtteanX::Model::SPARQLCache;
 use Log::Any::Adapter;
-# Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr');
+Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
@@ -108,6 +108,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 2, "Got two plans");
 		my $plan = $plans[0];
+#		warn $plan->as_string;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -217,10 +218,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
-		warn "DAAAAAAAAAAAHU";
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		foreach my $plan (@plans) {
-			warn "Result: ". $plan->as_string . "\n";
+#			warn "Result: ". $plan->as_string . "\n";
 		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
