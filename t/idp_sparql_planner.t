@@ -202,9 +202,14 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 2, 'Got two plans');
+		is(scalar @plans, 5, 'Got 5 plans');
+		foreach my $plan (@plans[0..3]) {
+			warn $plan->as_string ."\n";
+			does_ok($plan, 'Attean::API::Plan::Join', 'First 4 plans are joins');
+		}
+		isa_ok($plans[4], 'AtteanX::Store::SPARQL::Plan::BGP', 'Last plan is SPARQL BGP');
+		# Now consider winning plan
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan::Join', '2-triple BGP');
 		ok($plan->distinct, 'Distinct OK');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
