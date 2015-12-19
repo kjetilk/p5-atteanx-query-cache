@@ -8,7 +8,7 @@ use CHI;
 
 use Attean;
 use Attean::RDF;
-use AtteanX::IDPQueryPlanner::Cache;
+use AtteanX::QueryPlanner::Cache;
 use AtteanX::Store::Memory;
 use Data::Dumper;
 #use Carp::Always;
@@ -50,9 +50,9 @@ package TestModel {
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
-my $p	= AtteanX::IDPQueryPlanner::Cache->new;
-isa_ok($p, 'Attean::IDPQueryPlanner');
-isa_ok($p, 'AtteanX::IDPQueryPlanner::Cache');
+my $p	= AtteanX::QueryPlanner::Cache->new;
+isa_ok($p, 'Attean::QueryPlanner');
+isa_ok($p, 'AtteanX::QueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
 
 
