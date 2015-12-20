@@ -204,7 +204,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		foreach my $plan (@plans[0..3]) {
-			warn $plan->as_string ."\n";
+#			warn $plan->as_string ."\n";
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 4 plans are joins');
 		}
 		isa_ok($plans[4], 'AtteanX::Store::SPARQL::Plan::BGP', 'Last plan is SPARQL BGP');
@@ -240,26 +240,30 @@ does_ok($p, 'Attean::API::CostPlanner');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		does_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
+		isa_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
 		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
 	};
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
+		# TODO: Test more here when doing cost model
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		does_ok($plans[0], 'Attean::API::Plan::Join');
+		is(scalar @plans, 5, 'Got 5 plans');
+		my $plan = shift @plans;
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'BGP for now');
 		foreach my $plan (@plans) {
-#			warn $plan->as_string . "\n";
+			does_ok($plans[0], 'Attean::API::Plan::Join');
 		}
 	};
 
 	subtest '3-triple BGP chain with cache on two' => sub {
+		# TODO: Also improve with cost model
 		$cache->set('?subject <b> "2" .', ['<http://example.com/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
 		foreach my $plan (@plans) {
-			warn $plan->as_string . "\n";
+#			warn $plan->as_string . "\n";
 		}
 	};
 
@@ -268,11 +272,16 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('<a> ?predicate ?object .', {'<p>' => ['<http://example.org/bar>'],
 															'<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $u, $y]);
-		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		does_ok($plans[0], 'Attean::API::Plan::Join');
-		foreach my $plan (@plans) {
-#			warn $plan->as_string . "\n";
+		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
+		does_ok($plan, 'Attean::API::Plan::Join');
+		isa_ok($plan, 'Attean::Plan::HashJoin');
+		my @cplans = sort @{$plan->children};
+		isa_ok($cplans[0], 'Attean::Plan::HashJoin', 'First child is hashjoin');
+		foreach my $c2plan (@{$cplans[0]->children}) {
+			isa_ok($c2plan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
+		isa_ok($cplans[1], 'Attean::Plan::Table', 'Other child is a table');
+
 	};
 
 }
