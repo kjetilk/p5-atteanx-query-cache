@@ -225,21 +225,25 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		is(scalar @plans, 5, 'Got 5 plans');
 		foreach my $plan (@plans) {
-#			warn "Result: ". $plan->as_string . "\n";
+	#		warn "Result: ". $plan->as_string . "\n";
 		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
-		foreach my $cplan (@{$plan->children}) {
-#			warn $cplan->as_string;
-			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+		my @c1plans = sort @{$plan->children};
+		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
+		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
+		my @c2plans = sort @{$c1plans[0]->children};
+		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
+	 	foreach my $cplan (@{$c2plans[0]->children}) {
+			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		# TODO: What will the real join order be:
-		isa_ok(${$plan->children}[0], 'Attean::Plan::Quad');
-		is(${$plan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
-		isa_ok(${$plan->children}[1], 'Attean::Plan::Table');
+		does_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
+		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
 	};
-die "OMFG";
+
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
