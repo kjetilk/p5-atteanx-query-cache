@@ -44,6 +44,8 @@ sub cost_for_plan { # TODO: Do this for real
 		}
 	} elsif ($plan->isa('Attean::Plan::Table')) {
  		return 2;
+	} elsif ($plan->isa('Attean::Plan::Quad')) {
+ 		return 100000;
  	}
  	return;
 }
