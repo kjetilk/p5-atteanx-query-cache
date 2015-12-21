@@ -242,9 +242,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans) {
-	#		warn "Result: ". $plan->as_string . "\n";
-		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
@@ -278,9 +275,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
-		foreach my $plan (@plans) {
+#		foreach my $plan (@plans) {
 #			warn $plan->as_string . "\n";
-		}
+#		}
 	};
 
 
