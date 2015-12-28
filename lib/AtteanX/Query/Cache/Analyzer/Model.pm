@@ -9,8 +9,8 @@ use namespace::clean;
 
 extends 'AtteanX::Model::SPARQLCache';
 
-has 'cached' => (is = 'ro', isa => ArrayRef[Str], required => 1);
+#has 'cached' => (is = 'ro', isa => ArrayRef[Str], required => 1);
 
-has 'try' => (is 'rw', isa => Str);
+#has 'try' => (is => 'rw', isa => Str);
 
 1;
