@@ -90,6 +90,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
 		
+		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))), 'Cache has been set');
+		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))), 'Cache has not been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
@@ -119,6 +121,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 															'<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
+		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), variable('bar'))), 'Cache has been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
