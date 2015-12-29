@@ -21,17 +21,20 @@ has 'base_uri' => (is => 'ro', default => 'http://default.invalid/');
 
 has 'model' => (is => 'ro', isa => InstanceOf['AtteanX::Query::Cache::Analyzer::Model'], required => 1);
 
+has 'graph' => (is => 'ro', isa => InstanceOf['Attean::IRI'], default => iri('http://example.invalid'));
+
 sub analyze {
 	my $self = shift;
 	my $parser = AtteanX::Parser::SPARQL->new();
 	my ($algebra) = $parser->parse_list_from_bytes($self->query, $self->base_uri); # TODO: this is a bit of cargocult
-#	warn Data::Dumper::Dumper($algebra);
-	my @data = $algebra->subpatterns_of_type('Attean::Algebra::BGP');
-#	warn Data::Dumper::Dumper(@data);
+	my %costs;
+	my $planner = AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
 	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
-			my $new_bgp = Attean::Algebra::BGP->new(triples => [$triple]);
-			warn "FOO: " . $new_bgp->canonical_bgp_with_mapping;
+			next if ($model->is_cached($triple));
+			my $key = $triple->canonicalize->as_string;
+			my $plan = $planner->plan_for_algebra($algebra, $model, [$self->graph]);
+			$costs{$key} = $planner->cost_for_plan($plan);
 		}
 	}
 }
