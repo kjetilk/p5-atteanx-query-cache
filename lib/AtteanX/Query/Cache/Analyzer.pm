@@ -37,11 +37,11 @@ sub analyze {
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
 	warn $curcost;
 	my %costs;
-	my $planner = $curplanner; #AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
+	my $planner = AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
 	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
-			next if ($self->model->is_cached($triple));
-			my $key = $triple->canonicalize->as_string;
+			my $key = $triple->canonicalize->tuples_string;
+			next if ($self->model->is_cached($key));
 			$self->model->try($key);
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
