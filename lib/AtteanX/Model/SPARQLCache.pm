@@ -52,7 +52,7 @@ sub cost_for_plan { # TODO: Do this for real
 sub is_cached {
 	my $self = shift;
 	my $keypattern = shift;
-	return $self->cache->is_valid($keypattern->canonicalize->as_string);
+	return $self->cache->is_valid($keypattern);
 }
 
 
