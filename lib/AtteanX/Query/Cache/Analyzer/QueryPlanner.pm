@@ -13,9 +13,9 @@ use Moo;
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
 
-extends 'Attean::QueryPlanner';
+extends 'AtteanX::QueryPlanner::Cache';
 
-after 'access_plans' => sub {
+around 'access_plans' => sub {
 	my $orig = shift;
 	my @params = @_;
 	my $self	= shift;
@@ -28,14 +28,21 @@ after 'access_plans' => sub {
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 	
 	# Start checking the cache
-	my $keypattern = $self->_normalize_pattern($pattern);
-	my $cached = $model->cache->get($keypattern->tuples_string);
-	if (defined($cached)) {
-		$self->log->debug("Already accounted for by cache: " . $keypattern->tuples_string);
-		return @plans;
-	} else {
-		
+	my $keypattern = $pattern->canonicalize->tuples_string;
+	if ($model->is_cached($keypattern)) {
+		$self->log->debug("Already accounted for by cache: $keypattern");
+	} elsif ($model->try eq $keypattern) {
+		$self->log->debug("Creating dummy table for $keypattern");
+		my %row;
+		foreach my $var (@vars) {
+			$row{$var->value} = iri('urn:x-internal:dummy');
+		}
+		push(@plans, Attean::Plan::Table->new( variables => \@vars,
+															rows => [Attean::Result->new(bindings => \%row)],
+															distinct => 0,
+															ordered => [] ));
 	}
+	return @plans;
 };
 
 1;
