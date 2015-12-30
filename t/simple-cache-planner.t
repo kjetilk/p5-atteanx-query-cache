@@ -72,9 +72,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 	my $u		= triple(variable('s'), iri('p'), variable('o'));
 	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
 	my $w		= triple(variable('a'), iri('b'), iri('c'));
-	$cache->set('?subject <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-	$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-	$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
+	$cache->set('?v001 <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+	$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+	$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);
 
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");
@@ -107,10 +107,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?subject <p> ?object .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 															'<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
+		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?v002 <dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
@@ -138,9 +138,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('<http://example.org/foo> <p> ?object .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-		$cache->set('<http://example.org/foo> <dahut> ?object .', ['"Le Dahu"@fr', '"Dahut"@en']);
-		$cache->set('?subject <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
+		$cache->set('<http://example.org/foo> <p> ?v001 .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('<http://example.org/foo> <dahut> ?v001 .', ['"Le Dahu"@fr', '"Dahut"@en']);
+		$cache->set('?v001 <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
 		my $tp = triplepattern(iri('http://example.org/foo'),
 									  iri('dahut'),
 									  variable('name'));

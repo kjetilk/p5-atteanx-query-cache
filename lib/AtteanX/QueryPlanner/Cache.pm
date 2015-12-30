@@ -34,7 +34,7 @@ around 'access_plans' => sub {
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 
 	# Start checking the cache
-	my $keypattern = $self->_normalize_pattern($pattern);
+	my $keypattern = $pattern->canonicalize;
 	my $cached = $model->cache->get($keypattern->tuples_string);
 	if (defined($cached)) {
 		$self->log->debug("Found data in the cache for " . $keypattern->tuples_string);
@@ -70,20 +70,6 @@ around 'access_plans' => sub {
 	return @plans;
 };
 
-
-sub _normalize_pattern {
-	my ($self, $pattern) = @_;
-	my @keyterms = $pattern->values;
-	my @varnames = $pattern->variables;
-	my $i = 0;
-	foreach my $term (@keyterms) {
-		if ($term->is_variable) {
-			$keyterms[$i] = variable($varnames[$i]); # Normalize variable names
-		}
-		$i++;
-	}
-	return triplepattern(@keyterms);
-}
 
 sub _join_vars {
 	my ($self, $lhs, $rhs) = @_;

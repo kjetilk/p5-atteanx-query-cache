@@ -86,9 +86,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP single variable, with cache, not cached' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?subject <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-		$cache->set('?subject <dahut> "1" .', ['<http://example.org/dahut>']);
+		$cache->set('?v001 <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);
 		
 		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))), 'Cache has been set');
 		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))), 'Cache has not been set');
@@ -117,10 +117,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?subject <p> ?object .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
-															'<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-		$cache->set('?subject <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-		$cache->set('?subject <dahut> ?object .', {'<http://example.org/dahut>' => ['"Foobar"']});
+		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?v002 <dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
 		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), variable('bar'))), 'Cache has been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 
@@ -156,9 +156,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('<http://example.org/foo> <p> ?object .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-		$cache->set('<http://example.org/foo> <dahut> ?object .', ['"Le Dahu"@fr', '"Dahut"@en']);
-		$cache->set('?subject <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
+		$cache->set('<http://example.org/foo> <p> ?v001 .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('<http://example.org/foo> <dahut> ?v001 .', ['"Le Dahu"@fr', '"Dahut"@en']);
+		$cache->set('?v001 <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
 		my $tp = triplepattern(iri('http://example.org/foo'),
 									  iri('dahut'),
 									  variable('name'));
@@ -274,7 +274,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '3-triple BGP chain with cache on two' => sub {
 		# TODO: Also improve with cost model
-		$cache->set('?subject <b> "2" .', ['<http://example.com/dahut>']);
+		$cache->set('?v001 <b> "2" .', ['<http://example.com/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		does_ok($plans[0], 'Attean::API::Plan::Join');
@@ -285,8 +285,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 
 	subtest '3-triple BGP with predicate variable' => sub {
-		$cache->set('<a> ?predicate ?object .', {'<p>' => ['<http://example.org/bar>'],
-															'<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+		$cache->set('<a> ?v002 ?v001 .', {'<p>' => ['<http://example.org/bar>'],
+													 '<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $u, $y]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan::Join');
