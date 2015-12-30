@@ -34,10 +34,10 @@ around 'access_plans' => sub {
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
 
 	# Start checking the cache
-	my $keypattern = $pattern->canonicalize;
-	my $cached = $model->cache->get($keypattern->tuples_string);
+	my $keypattern = $pattern->canonicalize->tuples_string;
+	my $cached = $model->cache->get($keypattern);
 	if (defined($cached)) {
-		$self->log->debug("Found data in the cache for " . $keypattern->tuples_string);
+		$self->log->debug("Found data in the cache for " . $keypattern);
 		my $parser = Attean->get_parser('NTriples')->new;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
@@ -57,14 +57,14 @@ around 'access_plans' => sub {
 				}
 			}
 		} else {
-			croak 'Unknown data structure found in cache for key ' . $keypattern->tuples_string;
+			croak 'Unknown data structure found in cache for key ' . $keypattern;
 		}
 		push(@plans, Attean::Plan::Table->new( variables => \@vars,
 															rows => \@rows,
 															distinct => 0,
 															ordered => [] ));
 	} else {
-		$self->log->debug("Found no data in the cache for " . $keypattern->tuples_string);
+		$self->log->debug("Found no data in the cache for " . $keypattern);
 	}
 
 	return @plans;
