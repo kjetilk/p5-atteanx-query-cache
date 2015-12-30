@@ -34,6 +34,7 @@ use utf8;
 use Test::Modern;
 use Digest::SHA qw(sha1_hex);
 use CHI;
+use Carp::Always;
 
 use Attean;
 use Attean::RDF;
