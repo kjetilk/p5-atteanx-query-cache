@@ -26,6 +26,10 @@ has 'model' => (is => 'ro', isa => InstanceOf['AtteanX::Query::Cache::Analyzer::
 has 'graph' => (is => 'ro', isa => InstanceOf['Attean::IRI'], default => sub { return iri('http://example.invalid')});
 
 has 'threshold' => (is => 'ro', isa => Int, default => '10');
+has 'top' => (is => 'ro', isa => Int, default => '3');
+
+with 'MooX::Log::Any';
+
 
 sub analyze {
 	my $self = shift;
@@ -37,6 +41,8 @@ sub analyze {
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
 	warn $curcost;
 	my %costs;
+	my %triples;
+	my $percentage = 1-($self->threshold/100);
 	my $planner = AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
 	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
@@ -45,9 +51,15 @@ sub analyze {
 			$self->model->try($key);
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
+			if ($costs{$key} < $curcost * $percentage) {
+				$self->log->debug("Triple $key with $costs{$key} may current plan with cost $curcost");
+				$triples{$key} = $triple;
+			}
 		}
 	}
-	warn Data::Dumper::Dumper(\%costs);
+	no sort 'stable';
+	my @worthy = map { $triples{$_} } sort {$costs{$a} <=> $costs{$b}} keys(%costs);
+	return \@worthy;
 }
 
 1;
