@@ -51,14 +51,14 @@ sub analyze {
 			$self->model->try($key);
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
+			$self->log->debug("Triple $key has cost $costs{$key}, current $curcost");
 			if ($costs{$key} < $curcost * $percentage) {
-				$self->log->debug("Triple $key with $costs{$key} may current plan with cost $curcost");
 				$triples{$key} = $triple;
 			}
 		}
 	}
 	no sort 'stable';
-	my @worthy = map { $triples{$_} } sort {$costs{$a} <=> $costs{$b}} keys(%costs);
+	my @worthy = map { $triples{$_} } sort {$costs{$a} <=> $costs{$b}} keys(%triples);
 	return \@worthy;
 }
 
