@@ -50,6 +50,7 @@ sub analyze {
 			next if ($self->model->is_cached($key));
 			$self->model->try($key);
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
+			$self->log->trace("Alternative plan after fetching $key:\n" . $plan->as_string);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
 			$self->log->debug("Triple $key has cost $costs{$key}, current $curcost");
 			if ($costs{$key} < $curcost * $percentage) {
