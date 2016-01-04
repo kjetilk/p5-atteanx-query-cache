@@ -34,7 +34,7 @@ use utf8;
 use Test::Modern;
 use Digest::SHA qw(sha1_hex);
 use CHI;
-use Carp::Always;
+#use Carp::Always;
 
 use Attean;
 use Attean::RDF;
@@ -51,10 +51,37 @@ my $cache = CHI->new( driver => 'Memory', global => 1 );
 # isa_ok($p, 'AtteanX::QueryPlanner::Cache');
 # does_ok($p, 'Attean::API::CostPlanner');
 
+my $query = <<'END';
+SELECT * WHERE {
+	?s <p> "1" .
+   ?s <p> ?o .
+	?s <q> "xyz" . 
+	?a <b> <c> . 
+	?s <q> <a> .
+}
+END
+
+$query = <<'END';
+SELECT * WHERE {
+  ?a <c> ?s . 
+  ?s <p> ?o . 
+  ?o <b> "2" .
+}
+END
 
 
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
-my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => 'SELECT * WHERE { ?s a ?o; <p> <dahut> }');
 
-$analyzer->analyze;
+{
+	$model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query);
+	my $patterns = $analyzer->analyze;
+#	warn Data::Dumper::Dumper($patterns);
+	is(scalar @{$patterns}, 2, '2 patterns to submit');
+	foreach my $pattern (@{$patterns}) {
+		warn $pattern->as_string;
+		isa_ok($pattern, 'Attean::TriplePattern');
+	}
+}
