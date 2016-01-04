@@ -243,7 +243,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
-#		die $bgp->tuples_string;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
