@@ -39,7 +39,7 @@ use Attean;
 use Attean::RDF;
 use AtteanX::QueryPlanner::Cache;
 use AtteanX::Store::Memory;
-#use Carp::Always;
+use Carp::Always;
 use Data::Dumper;
 use AtteanX::Store::SPARQL;
 use AtteanX::Model::SPARQLCache;
@@ -90,8 +90,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);
 		
-		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))), 'Cache has been set');
-		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))), 'Cache has not been set');
+		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
+		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
@@ -121,7 +121,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v002 <dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
-		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), variable('bar'))), 'Cache has been set');
+		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), variable('bar'))->canonicalize->tuples_string), 'Cache has been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
@@ -243,6 +243,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
+#		die $bgp->tuples_string;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
