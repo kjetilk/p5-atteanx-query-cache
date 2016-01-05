@@ -277,9 +277,32 @@ does_ok($p, 'Attean::API::CostPlanner');
 		$cache->set('?v001 <b> "2" .', ['<http://example.com/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		does_ok($plans[0], 'Attean::API::Plan::Join');
+		my $plan = shift @plans;
+		does_ok($plan, 'Attean::API::Plan::Join');
+		my @tables;
+		$plan->walk(prefix => sub {
+							my $a	= shift;
+							my $self	= shift;
+							my @types	= @_;
+							foreach my $t (@types) {
+								push(@tables, $a) if ($a->isa('Attean::Plan::Table'));
+							}
+						});
+		is(scalar @tables, 2, 'Should be 2 tables in the plan');
+		my @bgps;
+		$plan->walk(prefix => sub {
+							my $a	= shift;
+							my $self	= shift;
+							my @types	= @_;
+							foreach my $t (@types) {
+								push(@bgps, $a) if ($a->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+							}
+						});
+		is(scalar @bgps, 1, 'Should be only one BGP in the plan');
+		is(scalar @{ $bgps[0]->children }, 1, 'And that should just have one child');
+		isa_ok(${ $bgps[0]->children }[0], 'Attean::Plan::Quad', 'That has a Quad child');
 #		foreach my $plan (@plans) {
-#			warn $plan->as_string . "\n";
+			#warn $plan->as_string . "\n";
 #		}
 	};
 
