@@ -25,13 +25,13 @@ has 'model' => (is => 'ro', isa => InstanceOf['AtteanX::Query::Cache::Analyzer::
 
 has 'graph' => (is => 'ro', isa => InstanceOf['Attean::IRI'], default => sub { return iri('http://example.invalid')});
 
-has 'threshold' => (is => 'ro', isa => Int, default => '10');
-has 'top' => (is => 'ro', isa => Int, default => '3');
+has 'improvement_threshold' => (is => 'ro', isa => Int, default => '10');
+has 'improvement_top' => (is => 'ro', isa => Int, default => '3');
 
 with 'MooX::Log::Any';
 
 
-sub analyze {
+sub best_cost_improvement {
 	my $self = shift;
 	my $parser = AtteanX::Parser::SPARQL->new();
 	my ($algebra) = $parser->parse_list_from_bytes($self->query, $self->base_uri); # TODO: this is a bit of cargocult
@@ -39,16 +39,20 @@ sub analyze {
 	my $curplanner = AtteanX::QueryPlanner::Cache->new;
 	my $curplan = $curplanner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
-	warn $curcost;
+#	warn $curcost;
 	my %costs;
 	my %triples;
-	my $percentage = 1-($self->threshold/100);
+	my $percentage = 1-($self->improvement_threshold/100);
 	my $planner = AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
 	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
 			my $key = $triple->canonicalize->tuples_string;
 			next if ($self->model->is_cached($key));
 			$self->model->try($key);
+			foreach my $plan ($planner->plans_for_algebra($algebra, $self->model, [$self->graph])) {
+				my $cost = $planner->cost_for_plan($plan, $self->model);
+#				warn "Cost $cost for:\n" . $plan->as_string;
+			}
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 			$self->log->trace("Alternative plan after fetching $key:\n" . $plan->as_string);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
@@ -60,7 +64,7 @@ sub analyze {
 	}
 	no sort 'stable';
 	my @worthy = map { $triples{$_} } sort {$costs{$a} <=> $costs{$b}} keys(%triples);
-	return \@worthy;
+	return @worthy[0 .. ($self->improvement_top-1)];
 }
 
 1;
