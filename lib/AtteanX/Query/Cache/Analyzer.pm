@@ -39,7 +39,7 @@ sub best_cost_improvement {
 	my $curplanner = AtteanX::QueryPlanner::Cache->new;
 	my $curplan = $curplanner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
-#	warn $curcost;
+	$self->log->trace("Cost of incumbent plan: $curcost");
 	my %costs;
 	my %triples;
 	my $percentage = 1-($self->improvement_threshold/100);
@@ -49,9 +49,11 @@ sub best_cost_improvement {
 			my $key = $triple->canonicalize->tuples_string;
 			next if ($self->model->is_cached($key));
 			$self->model->try($key);
-			foreach my $plan ($planner->plans_for_algebra($algebra, $self->model, [$self->graph])) {
-				my $cost = $planner->cost_for_plan($plan, $self->model);
-#				warn "Cost $cost for:\n" . $plan->as_string;
+			if ($self->is_trace) {
+				foreach my $plan ($planner->plans_for_algebra($algebra, $self->model, [$self->graph])) {
+					my $cost = $planner->cost_for_plan($plan, $self->model);
+					$self->log->trace("Cost $cost for:\n" . $plan->as_string);
+				}
 			}
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 			$self->log->debug("Alternative plan after fetching $key:\n" . $plan->as_string);
