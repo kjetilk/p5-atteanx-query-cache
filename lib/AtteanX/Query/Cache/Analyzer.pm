@@ -64,7 +64,7 @@ sub best_cost_improvement {
 	}
 	no sort 'stable';
 	my @worthy = map { $triples{$_} } sort {$costs{$a} <=> $costs{$b}} keys(%triples);
-	return @worthy[0 .. ($self->improvement_top-1)];
+	return splice(@worthy,0, $self->improvement_top-1);
 }
 
 1;
