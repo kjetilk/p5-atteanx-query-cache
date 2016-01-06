@@ -54,9 +54,9 @@ sub best_cost_improvement {
 #				warn "Cost $cost for:\n" . $plan->as_string;
 			}
 			my $plan = $planner->plan_for_algebra($algebra, $self->model, [$self->graph]);
-			$self->log->trace("Alternative plan after fetching $key:\n" . $plan->as_string);
+			$self->log->debug("Alternative plan after fetching $key:\n" . $plan->as_string);
 			$costs{$key} = $planner->cost_for_plan($plan, $self->model);
-			$self->log->debug("Triple $key has cost $costs{$key}, current $curcost");
+			$self->log->info("Triple $key has cost $costs{$key}, current $curcost");
 			if ($costs{$key} < $curcost * $percentage) {
 				$triples{$key} = $triple;
 			}
