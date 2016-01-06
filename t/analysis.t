@@ -77,11 +77,11 @@ my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache =
 	$model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query);
-	my $patterns = $analyzer->analyze;
-#	warn Data::Dumper::Dumper($patterns);
-	is(scalar @{$patterns}, 2, '2 patterns to submit');
-	foreach my $pattern (@{$patterns}) {
-		warn $pattern->as_string;
+	my @patterns = $analyzer->best_cost_improvement;
+#	warn Data::Dumper::Dumper(\@patterns);
+	is(scalar @patterns, 2, '2 patterns to submit');
+	foreach my $pattern (@patterns) {
+#		warn $pattern->as_string;
 		isa_ok($pattern, 'Attean::TriplePattern');
 	}
 }
