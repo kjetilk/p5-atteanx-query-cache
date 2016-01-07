@@ -35,7 +35,8 @@ use Test::Modern;
 use Digest::SHA qw(sha1_hex);
 use CHI;
 #use Carp::Always;
-
+use Redis::Fast;
+use Test::RedisServer;
 use Attean;
 use Attean::RDF;
 use AtteanX::Query::Cache::Analyzer;
@@ -45,6 +46,16 @@ use Log::Any::Adapter;
 Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
+
+my $redis_server;
+eval {
+	$redis_server = Test::RedisServer->new;
+} or plan skip_all => 'redis-server is required to this test';
+
+my $redis1 = Redis::Fast->new( $redis_server->connect_info );
+
+is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
+
 
 # my $p	= AtteanX::QueryPlanner::Cache->new;
 # isa_ok($p, 'Attean::QueryPlanner');
@@ -76,7 +87,7 @@ my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache =
 {
 	$model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query);
+	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
 	my @patterns = $analyzer->best_cost_improvement;
 #	warn Data::Dumper::Dumper(\@patterns);
 	is(scalar @patterns, 2, '2 patterns to submit');
