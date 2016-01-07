@@ -85,3 +85,5 @@ my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache =
 		isa_ok($pattern, 'Attean::TriplePattern');
 	}
 }
+
+done_testing();
