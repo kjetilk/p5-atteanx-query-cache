@@ -49,7 +49,7 @@ sub best_cost_improvement {
 			my $key = $triple->canonicalize->tuples_string;
 			next if ($self->model->is_cached($key));
 			$self->model->try($key);
-			if ($self->is_trace) {
+			if ($self->log->is_trace) {
 				foreach my $plan ($planner->plans_for_algebra($algebra, $self->model, [$self->graph])) {
 					my $cost = $planner->cost_for_plan($plan, $self->model);
 					$self->log->trace("Cost $cost for:\n" . $plan->as_string);
