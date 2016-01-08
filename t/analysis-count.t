@@ -73,27 +73,31 @@ my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
 my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
 
-my @patterns = $analyzer1->count_patterns;
-is(scalar @patterns, 0, 'Nothing now');
+my @patterns1 = $analyzer1->count_patterns;
+is(scalar @patterns1, 0, 'Nothing now');
 
 
 $basequery =~ s/< 50/> 5000000/;
 
 my $analyzer2 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
 
-my @patterns = $analyzer2->count_patterns;
-is(scalar @patterns, 0, 'Still nothing');
+my @patterns2 = $analyzer2->count_patterns;
+is(scalar @patterns2, 0, 'Still nothing');
+
+$basequery =~ s/a dbo:PopulatedPlace/dbo:abstract ?abs/g;
 
 
 my $analyzer3 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
 
 
-$basequery =~ s/a dbo:PopulatedPlace/dbo:abstract ?abs/g;
+my @patterns3 = $analyzer3->count_patterns;
+is(scalar @patterns3, 1, 'One pattern');
 
-
-my @patterns = $analyzer3->count_patterns;
-is(scalar @patterns, 1, 'Two patterns');
-
-
+my $pattern = shift @patterns3;
+isa_ok($pattern, 'Attean::TriplePattern');
+ok($pattern->subject->is_variable, 'Subject is variable');
+ok($pattern->predicate->is_resource, 'Predicate is bound');
+ok($pattern->object->is_variable, 'Object is variable');
+is($pattern->predicate->compare(iri('http://dbpedia.org/ontology/populationTotal')), 0, 'The correct predicate IRI');
 
 done_testing();
