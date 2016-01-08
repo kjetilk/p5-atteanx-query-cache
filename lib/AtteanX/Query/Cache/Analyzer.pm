@@ -28,6 +28,8 @@ has 'graph' => (is => 'ro', isa => InstanceOf['Attean::IRI'], default => sub { r
 has 'improvement_threshold' => (is => 'ro', isa => Int, default => '10');
 has 'improvement_top' => (is => 'ro', isa => Int, default => '3');
 
+has 'count_threshold' => (is => 'ro', isa => Int, default => '3');
+
 with 'MooX::Log::Any';
 
 =pod
