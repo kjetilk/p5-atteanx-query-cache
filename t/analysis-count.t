@@ -72,6 +72,7 @@ EOQ
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
 my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+note 'Testing counts without actual caching';
 
 my @patterns1 = $analyzer1->count_patterns;
 is(scalar @patterns1, 0, 'Nothing now');
@@ -100,4 +101,15 @@ ok($pattern->predicate->is_resource, 'Predicate is bound');
 ok($pattern->object->is_variable, 'Object is variable');
 is($pattern->predicate->compare(iri('http://dbpedia.org/ontology/populationTotal')), 0, 'The correct predicate IRI');
 
+$basequery =~ s/FILTER \(\?pop > 5000000\)/?place a dbo:Region ./;
+my $analyzer4 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+
+
+my @patterns4 = $analyzer4->count_patterns;
+is(scalar @patterns4, 2, 'Two pattern');
+
+$pattern = shift @patterns4;
+is($pattern->predicate->compare(iri('http://dbpedia.org/ontology/populationTotal')), 0, 'The correct predicate IRI');
+$pattern = shift @patterns4;
+is($pattern->predicate->compare(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')), 0, 'The correct predicate IRI');
 done_testing();
