@@ -35,7 +35,7 @@ use Test::Modern;
 use Digest::SHA qw(sha1_hex);
 use CHI;
 #use Carp::Always;
-use Redis::Fast;
+use Redis;
 use Test::RedisServer;
 use Attean;
 use Attean::RDF;
@@ -52,7 +52,7 @@ eval {
 	$redis_server = Test::RedisServer->new;
 } or plan skip_all => 'redis-server is required to this test';
 
-my $redis1 = Redis::Fast->new( $redis_server->connect_info );
+my $redis1 = Redis->new( $redis_server->connect_info );
 
 is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 
