@@ -36,7 +36,7 @@ with 'MooX::Log::Any';
 
 =item C<< store >>
 
-A L<Redis::Fast> object. This has two purposes: First, to store any
+A L<Redis> object. This has two purposes: First, to store any
 data the analyzer needs to persist to decide when to prefetch. Second,
 it uses Redis' publish-subscribe system to publish the URLs containing
 queries that the prefetcher should fetch.
@@ -44,7 +44,7 @@ queries that the prefetcher should fetch.
 =cut
 
 has store => (is => 'ro',
-				  isa => InstanceOf['Redis::Fast'],
+				  isa => InstanceOf['Redis'],
 				  required => 1
 				 );
 
