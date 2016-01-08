@@ -115,9 +115,9 @@ sub count_patterns {
 			# Update the storage and return the triple pattern
 			$self->store->incr($key);
 			my $count = $self->store->get($key);
-			$self->log->debug("Count for this key in database is $count");
+			$self->log->debug("Count for key '$key' in database is $count");
 			if ($count >= $self->count_threshold) { # TODO: A way to expire counts
-				$self->log->info("Triple $patternkey has predicate with $count ");
+				$self->log->info("Triple '$patternkey' has predicate with $count counts");
 				push(@worthy, $triple);
 			}
 		}
