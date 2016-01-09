@@ -222,20 +222,27 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans[0..3]) {
-#			warn $plan->as_string ."\n";
-			does_ok($plan, 'Attean::API::Plan::Join', 'First 4 plans are joins');
-		}
-		isa_ok($plans[4], 'AtteanX::Store::SPARQL::Plan::BGP', 'Last plan is SPARQL BGP');
-		# Now consider winning plan
-		my $plan = $plans[0];
-		ok($plan->distinct, 'Distinct OK');
-		foreach my $cplan (@{$plan->children}) {
-			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+		
+		# The first two plans should be the "best", containing a HashJoin over
+		# a Table and a SPARQLBGP. The order or the join operands is irrelevant,
+		# because we don't know enough about cardinality of SPARQLBGP plans to
+		# estimate which side is going to be smaller.
+		foreach my $plan (@plans[0..1]) {
+			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
+			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
+			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
 		}
 
-		isa_ok(${$plan->children}[0], 'Attean::Plan::Table', 'Should join on Table first');
-		my $bgpplan = ${$plan->children}[1];
+		my $plan = $plans[0];
+		
+		# sorting the strings should result in the Attean::Plan::Table being first
+		my @children	= sort { "$a" cmp "$b" } @{$plan->children};
+		foreach my $cplan (@children) {
+			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+		}
+		
+		my ($table, $bgpplan)	= @children;
+		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
 		isa_ok($bgpplan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Then on SPARQL BGP');
 		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
 		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
@@ -261,15 +268,41 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
-		# TODO: Test more here when doing cost model
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = shift @plans;
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'BGP for now');
-		foreach my $plan (@plans) {
-			does_ok($plans[0], 'Attean::API::Plan::Join');
+		isa_ok($plan, 'Attean::Plan::HashJoin');
+		
+		# sorting the strings should result in a HashJoin followed by a SPARQLBGP
+		my @children	= sort { "$a" cmp "$b" } @{ $plan->children };
+		foreach my $plan (@children) {
+			does_ok($plans[0], 'Attean::API::Plan');
 		}
+		
+		my @triples;
+		my ($join, $bgpplan1)	= @children;
+		isa_ok($join, 'Attean::Plan::HashJoin');
+		isa_ok($bgpplan1, 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar(@{ $bgpplan1->children }), 1);
+		push(@triples, @{ $bgpplan1->children });
+		
+		# sorting the strings should result in a Table followed by a SPARQLBGP
+		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
+		foreach my $plan (@grandchildren) {
+			does_ok($plans[0], 'Attean::API::Plan');
+		}
+		my ($table, $bgpplan2)	= @grandchildren;
+		isa_ok($table, 'Attean::Plan::Table');
+		isa_ok($bgpplan2, 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar(@{ $bgpplan2->children }), 1);
+		push(@triples, @{ $bgpplan2->children });
+		my @strings	= sort map { $_->as_string } @triples;
+		my @expected	= (
+			qq[- Quad { ?a, <c>, ?s, <http://test.invalid/graph> }\n],
+			qq[- Quad { ?o, <b>, "2", <http://test.invalid/graph> }\n],
+		);
+		is_deeply(\@strings, \@expected);
 	};
 
 	subtest '3-triple BGP chain with cache on two' => sub {
@@ -279,31 +312,12 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan::Join');
-		my @tables;
-		$plan->walk(prefix => sub {
-							my $a	= shift;
-							my $self	= shift;
-							my @types	= @_;
-							foreach my $t (@types) {
-								push(@tables, $a) if ($a->isa('Attean::Plan::Table'));
-							}
-						});
+		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
-		my @bgps;
-		$plan->walk(prefix => sub {
-							my $a	= shift;
-							my $self	= shift;
-							my @types	= @_;
-							foreach my $t (@types) {
-								push(@bgps, $a) if ($a->isa('AtteanX::Store::SPARQL::Plan::BGP'));
-							}
-						});
+		my @bgps	= $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @bgps, 1, 'Should be only one BGP in the plan');
 		is(scalar @{ $bgps[0]->children }, 1, 'And that should just have one child');
 		isa_ok(${ $bgps[0]->children }[0], 'Attean::Plan::Quad', 'That has a Quad child');
-#		foreach my $plan (@plans) {
-			#warn $plan->as_string . "\n";
-#		}
 	};
 
 
@@ -322,7 +336,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 		isa_ok($cplans[1], 'Attean::Plan::Table', 'Other child is a table');
 
 	};
-
 }
 
 done_testing();
