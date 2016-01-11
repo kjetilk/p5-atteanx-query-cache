@@ -272,7 +272,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = shift @plans;
-		isa_ok($plan, 'Attean::Plan::HashJoin');
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'The winning plan should be BGP');
+		is(scalar @{$plan->children}, 3, 'with three children');
+		$plan = shift @plans;
+		isa_ok($plan, 'Attean::Plan::HashJoin', 'The next plan should be a join');
 		
 		# sorting the strings should result in a HashJoin followed by a SPARQLBGP
 		my @children	= sort { "$a" cmp "$b" } @{ $plan->children };
