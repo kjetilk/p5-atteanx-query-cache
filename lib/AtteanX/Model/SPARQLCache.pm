@@ -37,23 +37,22 @@ sub cost_for_plan {
 		# BGPs should have a cost proportional to the number of triple patterns,
 		# but be much more costly if they contain a cartesian product.
 		if ($plan->children_are_variable_connected) {
-			return 10 * scalar(@{ $plan->children });
+			return 20 * scalar(@{ $plan->children });
 		} else {
-			return 100 * scalar(@{ $plan->children });
+			return 200 * scalar(@{ $plan->children });
 		}
  	} else {
 		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
 		my $bgpcount = scalar @bgps;
 		if ($plan->has_cost) {
-#			die "BAR: " . $plan->as_string;
-			return $plan->cost * $bgpcount;
+			return $plan->cost + $bgpcount;
 		} else {
 			foreach my $bgp (@bgps) {
-				my $cost = $bgpcount;
-				if ($plan->children_are_variable_connected) {
-					$cost *= 10 * scalar(@{ $plan->children });
+				my $cost;
+				if ($bgp->children_are_variable_connected) {
+					$cost = 10 * scalar(@{ $bgp->children }) + 26;
 				} else {
-					$cost *= 100 * scalar(@{ $plan->children });
+					$cost = 100 * scalar(@{ $bgp->children }) + 35;
 				}
 				$bgp->cost($cost);
 			}
