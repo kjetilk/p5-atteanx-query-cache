@@ -45,10 +45,18 @@ sub cost_for_plan {
 		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
 		my $bgpcount = scalar @bgps;
 		if ($plan->has_cost) {
+#			die "BAR: " . $plan->as_string;
 			return $plan->cost * $bgpcount * 2;
-			die "BARF: " . $plan->as_string;
 		} else {
-			warn "FOO: ".$plan->as_string;
+			foreach my $bgp (@bgps) {
+				my $cost = $bgpcount;
+				if ($plan->children_are_variable_connected) {
+					$cost *= 10 * scalar(@{ $plan->children });
+				} else {
+					$cost *= 100 * scalar(@{ $plan->children });
+				}
+				$bgp->cost($cost);
+			}
 		}
 	}
  	return;
