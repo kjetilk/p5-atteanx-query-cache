@@ -7,8 +7,10 @@ use warnings;
 use Moo;
 use Types::Standard qw(InstanceOf ArrayRef ConsumerOf HashRef);
 use namespace::clean;
+use Class::Method::Modifiers;
 
 extends 'AtteanX::Model::SPARQL';
+with 'MooX::Log::Any';
 
 has 'cache' => (
 					 is => 'ro',
@@ -21,32 +23,29 @@ sub plans_for_algebra {
 	return;
 }
 
-sub cost_for_plan {
+around 'cost_for_plan' => sub {
+	my $orig = shift;
+	my @params = @_;
  	my $self	= shift;
  	my $plan	= shift;
  	my $planner	= shift;
-#	my $joinfactor = ($plan->isa('Attean::Plan::HashJoin')) ? 9 : 10; # Consistently prefer HashJoins unless treated specially
-
-# 	if ($plan->does('Attean::API::Plan::Join')) {
-# 		if (${$plan->children}[0]->isa('Attean::Plan::Table') && ${$plan->children}[1]->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-# 			my $bgpcost	= $planner->cost_for_plan(${$plan->children}[1], $self);
-# 			my $cost	= int($bgpcost * $joinfactor / 20);
-# # 			say "1 Join costs: $bgpcost => $cost\n";
-# 			return $cost;
-# 		} elsif (${$plan->children}[1]->isa('Attean::Plan::Table') && ${$plan->children}[0]->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-# 			my $bgpcost	= $planner->cost_for_plan(${$plan->children}[0], $self);
-# 			my $cost	= int($bgpcost * $joinfactor / 15);
-# # 			say "2 Join costs: $bgpcost => $cost\n";
-# 			return $cost;
-# 		}
-#	} els
+	my $cost = $orig->(@params) || $planner->cost_for_plan($plan, $self);;
+	warn $plan->as_string;
+	$self->log->debug("Cost for original plan were $cost");
 	if ($plan->isa('Attean::Plan::Table')) {
  		return 2;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
  		return 100000;
- 	}
+ 	} else {
+		my $bgps = scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
+		if ($bgps > 1) {
+			# Penalize plans with more BGPs
+			warn "DAAHUT: $bgps";# . Data::Dumper::Dumper(\@bgps);;
+			return ($cost * 2 * $bgps); # TODO: What if parent model has costs for things we have?
+		}
+	}
  	return;
-}
+};
 
 sub is_cached {
 	my $self = shift;
