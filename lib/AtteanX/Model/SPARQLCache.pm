@@ -46,7 +46,7 @@ sub cost_for_plan {
 		my $bgpcount = scalar @bgps;
 		if ($plan->has_cost) {
 #			die "BAR: " . $plan->as_string;
-			return $plan->cost * $bgpcount * 2;
+			return $plan->cost * $bgpcount;
 		} else {
 			foreach my $bgp (@bgps) {
 				my $cost = $bgpcount;
