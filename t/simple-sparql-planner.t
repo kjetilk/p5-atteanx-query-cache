@@ -271,10 +271,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans) {
-			warn "Cost: " . $model->cost_for_plan($plan, $p) . "\n" . $plan->as_string;
-		}
-		die;
 		my $plan = shift @plans;
 		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'The winning plan should be BGP');
 		is(scalar @{$plan->children}, 3, 'with three children');
