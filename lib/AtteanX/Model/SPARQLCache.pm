@@ -23,25 +23,32 @@ sub plans_for_algebra {
 	return;
 }
 
-around 'cost_for_plan' => sub {
-	my $orig = shift;
-	my @params = @_;
+sub cost_for_plan {
  	my $self	= shift;
  	my $plan	= shift;
  	my $planner	= shift;
-	my $cost = $orig->(@params) || $planner->cost_for_plan($plan, $self);;
-	warn $plan->as_string;
-	$self->log->debug("Cost for original plan were $cost");
+#	warn $plan->as_string;
+#	$self->log->debug("Cost for original plan were $cost");
 	if ($plan->isa('Attean::Plan::Table')) {
  		return 2;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
  		return 100000;
+	} elsif ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+		# BGPs should have a cost proportional to the number of triple patterns,
+		# but be much more costly if they contain a cartesian product.
+		if ($plan->children_are_variable_connected) {
+			return 10 * scalar(@{ $plan->children });
+		} else {
+			return 100 * scalar(@{ $plan->children });
+		}
  	} else {
-		my $bgps = scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
-		if ($bgps > 1) {
-			# Penalize plans with more BGPs
-			warn "DAAHUT: $bgps";# . Data::Dumper::Dumper(\@bgps);;
-			return ($cost * 2 * $bgps); # TODO: What if parent model has costs for things we have?
+		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
+		my $bgpcount = scalar @bgps;
+		if ($plan->has_cost) {
+			return $plan->cost * $bgpcount * 2;
+			die "BARF: " . $plan->as_string;
+		} else {
+			warn "FOO: ".$plan->as_string;
 		}
 	}
  	return;
