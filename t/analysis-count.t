@@ -20,7 +20,7 @@ Kjetil Kjernsmo E<lt>kjetilk@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENCE
 
-This software is copyright (c) 2015 by Kjetil Kjernsmo.
+This software is copyright (c) 2015, 2016 by Kjetil Kjernsmo.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
@@ -106,7 +106,7 @@ my $analyzer4 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $
 
 
 my @patterns4 = $analyzer4->count_patterns;
-is(scalar @patterns4, 2, 'Two pattern');
+is(scalar @patterns4, 2, 'Two patterns');
 
 $pattern = shift @patterns4;
 is($pattern->predicate->compare(iri('http://dbpedia.org/ontology/populationTotal')), 0, 'The correct predicate IRI');
