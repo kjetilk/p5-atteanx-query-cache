@@ -62,17 +62,12 @@ is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 # isa_ok($p, 'AtteanX::QueryPlanner::Cache');
 # does_ok($p, 'Attean::API::CostPlanner');
 
-my $query = <<'END';
-SELECT * WHERE {
-	?s <p> "1" .
-   ?s <p> ?o .
-	?s <q> "xyz" . 
-	?a <b> <c> . 
-	?s <q> <a> .
-}
-END
 
-$query = <<'END';
+my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
+
+{
+my $query = <<'END';
 SELECT * WHERE {
   ?a <c> ?s . 
   ?s <p> ?o . 
@@ -80,11 +75,6 @@ SELECT * WHERE {
 }
 END
 
-
-my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
-
-{
 	$model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
@@ -93,6 +83,25 @@ my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache =
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
 #		warn $pattern->as_string;
+		isa_ok($pattern, 'Attean::TriplePattern');
+	}
+}
+
+{
+my $query = <<'END';
+SELECT * WHERE {
+	?s <r> "1" .
+   ?s <p> ?o .
+	?s <q> "xyz" . 
+	?o <b> <c> . 
+}
+END
+
+	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
+	my @patterns = $analyzer->best_cost_improvement;
+	is(scalar @patterns, 2, '2 patterns to submit');
+	foreach my $pattern (@patterns) {
+		warn $pattern->as_string;
 		isa_ok($pattern, 'Attean::TriplePattern');
 	}
 }
