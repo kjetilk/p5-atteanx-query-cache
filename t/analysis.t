@@ -66,7 +66,8 @@ is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
 
-{
+subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
+
 my $query = <<'END';
 SELECT * WHERE {
   ?a <c> ?s . 
@@ -85,9 +86,11 @@ END
 #		warn $pattern->as_string;
 		isa_ok($pattern, 'Attean::TriplePattern');
 	}
-}
+};
 
-{
+note 'This test is CPU intensive';
+subtest '4-triple BGP where one pattern makes little impact' => sub {
+
 my $query = <<'END';
 SELECT * WHERE {
 	?s <r> "1" .
@@ -101,9 +104,9 @@ END
 	my @patterns = $analyzer->best_cost_improvement;
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
-		warn $pattern->as_string;
+#		warn $pattern->as_string;
 		isa_ok($pattern, 'Attean::TriplePattern');
 	}
-}
+};
 
 done_testing();
