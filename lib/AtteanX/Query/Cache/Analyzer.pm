@@ -63,7 +63,7 @@ sub best_cost_improvement {
 	my %triples;
 	my $percentage = 1-($self->improvement_threshold/100);
 	my $planner = AtteanX::Query::Cache::Analyzer::QueryPlanner->new;
-	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
+	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) { # TODO: Parallelize
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
 			my $key = $triple->canonicalize->tuples_string;
 			next if ($self->model->is_cached($key));
