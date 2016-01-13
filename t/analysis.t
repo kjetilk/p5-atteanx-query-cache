@@ -80,7 +80,6 @@ END
 														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
 	my @patterns = $analyzer->best_cost_improvement;
-	#	warn Data::Dumper::Dumper(\@patterns);
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
 		isa_ok($pattern, 'Attean::TriplePattern');
@@ -104,8 +103,10 @@ END
 	my @patterns = $analyzer->best_cost_improvement;
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
-#		warn $pattern->as_string;
 		isa_ok($pattern, 'Attean::TriplePattern');
+		ok($pattern->predicate->compare(iri('p')), 'Predicate is not <p>');
+		ok($pattern->predicate->compare(iri('r')), 'Predicate is not <r>');
+
 	}
 };
 
