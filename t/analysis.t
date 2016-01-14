@@ -96,28 +96,3 @@ is($count, 2, 'Two triple patterns has match');
 
 
 done_testing;
-exit 0;
-note 'This test is CPU intensive';
-subtest '4-triple BGP where one pattern makes little impact' => sub {
-
-my $query = <<'END';
-SELECT * WHERE {
-	?s <r> "1" .
-   ?s <p> ?o .
-	?s <q> "xyz" . 
-	?o <b> <c> . 
-}
-END
-
-	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
-	my @patterns = $analyzer->best_cost_improvement;
-	is(scalar @patterns, 2, '2 patterns to submit');
-	foreach my $pattern (@patterns) {
-		isa_ok($pattern, 'Attean::TriplePattern');
-		ok($pattern->predicate->compare(iri('p')), 'Predicate is not <p>');
-		ok($pattern->predicate->compare(iri('r')), 'Predicate is not <r>');
-
-	}
-};
-
-done_testing();
