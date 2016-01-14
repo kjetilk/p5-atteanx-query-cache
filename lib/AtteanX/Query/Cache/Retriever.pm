@@ -25,22 +25,22 @@ sub fetch {
 	my ($self, $triple) = @_;
 	$triple = $triple->canonicalize;
 	my $key = $triple->tuples_string;
-	my $use_hash = (scalar $triple->values_consuming_role('Attean::API::Variable')) - 1;
+	my @vars	= $triple->values_consuming_role('Attean::API::Variable');
+	my $use_hash = (scalar @vars) - 1;
 	if ($use_hash < 0) {
 		croak "No variables in triple pattern $key";
 	} elsif ($use_hash > 1) {
 		croak "Only triple patterns with one or two variables are supported, got $key";
 	}
-	my $sparql = "SELECT * WHERE {\n\t" . $triple->as_sparql . '. }';
+	my $sparql = 'SELECT ' . join(' ', map { $_->ntriples_string } @vars) . 
+	  " WHERE {\n\t" . $triple->as_sparql . '. }';
 	$self->log->debug("Running SPARQL query\n$sparql");
 	my $iter = $self->model->get_sparql($sparql);
 
 	if ($use_hash) { # Now, decide if we insert an array or a hash into the cache.
 		my $data;
 		while (my $res = $iter->next) {
-#			warn Data::Dumper::Dumper($res->values);
-			my @values = $res->values;
-			push(@{$data->{$values[0]->ntriples_string}}, $values[1]->ntriples_string);
+			push(@{$data->{$res->value($vars[0]->value)->ntriples_string}}, $res->value($vars[1]->value)->ntriples_string);
 		}
 		return $data;
 	} else {
