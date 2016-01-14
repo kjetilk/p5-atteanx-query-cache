@@ -88,6 +88,8 @@ SELECT * WHERE {
 }
 END
 
+can_ok($model, 'cache');
+
 $model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 													  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
