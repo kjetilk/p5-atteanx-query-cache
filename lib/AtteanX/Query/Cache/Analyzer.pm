@@ -127,7 +127,7 @@ sub count_patterns {
 
 sub analyze_and_cache {
 	my ($self, @analyzers) = @_;
-	croak 'No analyzers given to publish' unless @analyzers;
+	croak 'No analyzers given to analyze and cache' unless @analyzers;
 	if ($analyzers[0] eq 'all') {
 		@analyzers = ('count_patterns', 'best_cost_improvement');
 	}
@@ -137,15 +137,22 @@ sub analyze_and_cache {
 	$self->log->info('Running analyzers named' . join(', ', @analyzers));
 	my $retriever = AtteanX::Query::Cache::Retriever->new(model => $self->model); # TODO: Only OK if we don't do query planning
 	my $i = 0;
+	my %done;
 	foreach my $analyzer (@analyzers) {
 		foreach my $triple ($self->$analyzer) {
+			my $key = $triple->canonicalize->tuples_string;
+			next if $done{$key}; # Skip if some other analyzer already did fetch
 			$self->log->debug('Fetching triple pattern ' . $triple->as_string);
 			my $data = $retriever->fetch($triple);
-			$i++ if (defined($data));
-			$self->model->cache->set($triple->canonicalize->tuples_string, $data);
+			if (defined($data)) {
+				$done{$key} = 1;
+				$i++;
+			}
+			$self->model->cache->set($key, $data);
 		}
 	}
 	$self->log->info("Got results from prefetching $i triple patterns");
+	return $i;
 }
 
 1;
