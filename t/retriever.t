@@ -4,7 +4,7 @@
 
 =head1 PURPOSE
 
-Test that produced plans are correct.
+Test that prefetching from the net works
 
 =head1 SYNOPSIS
 
