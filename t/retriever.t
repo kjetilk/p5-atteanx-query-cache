@@ -38,7 +38,7 @@ use Attean::RDF qw(triple triplepattern variable iri literal);
 
 use AtteanX::Query::Cache::Retriever;
 use AtteanX::Model::SPARQLCache;
-use Carp::Always;
+#use Carp::Always;
 use Log::Any::Adapter;
 Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
 
@@ -52,7 +52,7 @@ my $triples = [
 				   triple(iri('http://example.org/foo'), iri('http://example.org/p'), literal('1')),
 				   triple(iri('http://example.org/bar'), iri('http://example.org/p'), literal('1')),
 				   triple(iri('http://example.com/foo'), iri('http://example.org/p'), literal('dahut')),
-				   triple(iri('http://example.com/bar'), iri('http://example.org/http://dahut/p'), iri('http://example.org/dahutten')),
+				   triple(iri('http://example.org/bar'), iri('http://example.org/p'), iri('http://example.org/dahutten')),
 				   triple(iri('http://example.org/dahut'), iri('http://example.org/dahut'), literal('1')),
 				  ];
 
@@ -69,7 +69,19 @@ subtest 'Simple single-variable triple' => sub {
 	my $t = triplepattern(variable('s'), iri('http://example.org/p'), literal('1'));
 	my $data = $retriever->fetch($t);
 	is(ref($data), 'ARRAY', 'We have arrayref');
-	is_deeply($data, ['<http://example.org/bar> .','<http://example.org/foo> .'], 'expected arrayref');
+	is_deeply([sort @{$data}], ['<http://example.org/bar>','<http://example.org/foo>'], 'expected arrayref');
+};
+
+subtest 'Simple dual-variable triple' => sub {
+	my $t = triplepattern(variable('s'), iri('http://example.org/p'), variable('o'));
+	my $data = $retriever->fetch($t);
+	is(ref($data), 'HASH', 'We have hashref');
+	is(scalar keys %{$data}, 3, 'Three keys');
+	foreach my $key (keys %{$data}) {
+		like($key, qr/example/, 'All keys have example in them');
+		is(ref($data->{$key}), 'ARRAY', 'All entries have arrayrefs');
+	}
+	is(scalar @{$data->{'<http://example.org/bar>'}}, 2, 'One of them has two elements');
 };
 
 
