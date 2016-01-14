@@ -36,15 +36,18 @@ sub fetch {
 	my $iter = $self->model->get_sparql($sparql);
 
 	if ($use_hash) { # Now, decide if we insert an array or a hash into the cache.
-		my %data;
+		my $data;
 		while (my $res = $iter->next) {
-			warn Data::Dumper::Dumper($res);
-#			push(@{$data}, $res->tuples_string);
+#			warn Data::Dumper::Dumper($res->values);
+			my @values = $res->values;
+			push(@{$data->{$values[0]->ntriples_string}}, $values[1]->ntriples_string);
 		}
+		return $data;
 	} else {
 		my @data;
 		while (my $res = $iter->next) {
-			push(@data, $res->tuples_string);
+			my ($value) = $res->values;
+			push(@data, $value->ntriples_string);
 		}
 		return \@data;
 	}
