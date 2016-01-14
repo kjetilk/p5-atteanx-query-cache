@@ -32,26 +32,21 @@ sub fetch {
 		croak "Only triple patterns with one or two variables are supported, got $key";
 	}
 	my $sparql = "SELECT * WHERE {\n\t" . $triple->as_sparql . '. }';
-#	$sparql = 'SELECT * WHERE { ?s ?p ?o . }';
 	$self->log->debug("Running SPARQL query\n$sparql");
 	my $iter = $self->model->get_sparql($sparql);
 
 	if ($use_hash) { # Now, decide if we insert an array or a hash into the cache.
-		warn "BBARR";
 		my %data;
 		while (my $res = $iter->next) {
 			warn Data::Dumper::Dumper($res);
 #			push(@{$data}, $res->tuples_string);
 		}
-#		$self->cache->set($key, \%data);
 	} else {
 		my @data;
-		warn "FOOOOOOOoo";
 		while (my $res = $iter->next) {
 			push(@data, $res->tuples_string);
 		}
 		return \@data;
-#		$self->cache->set($key, \@data);
 	}
 }
 

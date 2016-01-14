@@ -65,9 +65,14 @@ my $model = AtteanX::Model::SPARQLCache->new(store => $store,
 
 my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
 
-my $t = triplepattern(variable('s'), iri('http://example.org/p'), literal('1'));
-#print $t->canonicalize;
-print Data::Dumper::Dumper($retriever->fetch($t));
+subtest 'Simple single-variable triple' => sub {
+	my $t = triplepattern(variable('s'), iri('http://example.org/p'), literal('1'));
+	my $data = $retriever->fetch($t);
+	is(ref($data), 'ARRAY', 'We have arrayref');
+	is_deeply($data, ['<http://example.org/bar> .','<http://example.org/foo> .'], 'expected arrayref');
+};
+
+
 
 
 done_testing;
