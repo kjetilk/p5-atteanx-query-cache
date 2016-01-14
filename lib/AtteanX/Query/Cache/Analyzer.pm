@@ -125,5 +125,26 @@ sub count_patterns {
 	return @worthy;
 }
 
+sub analyze {
+	my ($self, @analyzers) = @_;
+	croak 'No analyzers given to publish' unless @analyzers;
+	if ($analyzers[0] eq 'all') {
+		@analyzers = ('count_patterns', 'best_cost_improvement');
+	}
+	foreach my $analyzer (@analyzers) {
+		croak "Could not find analyzer method $analyzer" unless $self->can($analyzer);
+	}
+	$self->log->info('Running analyzers named' . join(', ', @analyzers));
+	my $retriever = AtteanX::Query::Cache::Retriever->new(store => $self->store);
+	foreach my $analyzer (@analyzers) {
+		foreach my $triple ($self->$analyzer) {
+			$self->log->debug('Fetching triple pattern ' . $triple->as_string);
+			$retriever->fetch($triple);
+		}
+	}
+
+		
+
+}
 
 1;
