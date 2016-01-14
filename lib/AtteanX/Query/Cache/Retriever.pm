@@ -15,7 +15,6 @@ use Types::Standard qw(InstanceOf);
 
 has model => (is => 'ro',
 				  isa => InstanceOf['AtteanX::Model::SPARQLCache'],
-				  handles => [ qw(cache) ],
 				  required => 1);
 
 with 'MooX::Log::Any';
