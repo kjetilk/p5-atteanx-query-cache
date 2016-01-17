@@ -6,6 +6,9 @@
 	:test-requirement       [ :on "Test::Modern"^^:CpanId ];
 	:test-requirement       [ :on "Carp::Always"^^:CpanId ];
 	:test-requirement       [ :on "Test::RedisServer"^^:CpanId ];
+	:test-requirement       [ :on "RDF::Endpoint"^^:CpanId ];
+	:test-requirement       [ :on "Test::LWP::UserAgent 0.027"^^:CpanId ];
+	:test-requirement       [ :on "HTTP::Message::PSGI"^^:CpanId ];
         :runtime-requirement    [ :on "Moo 1.006000"^^:CpanId ];
         :runtime-requirement    [ :on "Redis"^^:CpanId ];
         :runtime-requirement    [ :on "Attean 0.010"^^:CpanId ];
