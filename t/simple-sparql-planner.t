@@ -32,7 +32,7 @@ use v5.14;
 use autodie;
 use utf8;
 use Test::Modern;
-use Digest::SHA qw(sha1_hex);
+
 use CHI;
 
 use Attean;
