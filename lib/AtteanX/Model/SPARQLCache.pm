@@ -7,7 +7,6 @@ use warnings;
 use Moo;
 use Types::Standard qw(InstanceOf ArrayRef ConsumerOf HashRef);
 use namespace::clean;
-use Class::Method::Modifiers;
 
 extends 'AtteanX::Model::SPARQL';
 with 'MooX::Log::Any';
