@@ -18,6 +18,7 @@
         :runtime-requirement    [ :on "LWP::UserAgent::CHICaching"^^:CpanId ];
         :runtime-requirement    [ :on "Types::Standard"^^:CpanId ];
         :runtime-requirement    [ :on "MooX::Log::Any"^^:CpanId ];
+        :runtime-requirement    [ :on "List::MoreUtils"^^:CpanId ];
         :runtime-requirement    [ :on "AtteanX::Store::SPARQL"^^:CpanId ];
         :runtime-requirement    [ :on "namespace::clean"^^:CpanId ] ;
         :runtime-requirement    [ :on "perl 5.014"^^:CpanId ] ;
