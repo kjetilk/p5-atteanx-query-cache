@@ -5,7 +5,7 @@ use v5.14;
 use warnings;
 
 use Moo;
-use Types::Standard qw(InstanceOf ArrayRef ConsumerOf HashRef);
+use Types::Standard qw(InstanceOf);
 use namespace::clean;
 
 extends 'AtteanX::Model::SPARQLCache';
