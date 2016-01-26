@@ -53,11 +53,6 @@ isa_ok($p, 'Attean::QueryPlanner');
 isa_ok($p, 'AtteanX::QueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
 
-# TODO: add data to the cache
-# for two bound: An array of variable
-# For one bound: A hash (or two hashes?)
-# Dictionary?
-
 {
 
 	my $store	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
