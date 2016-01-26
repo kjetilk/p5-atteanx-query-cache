@@ -11,7 +11,7 @@ our $VERSION   = '0.001';
 
 use Moo;
 
-extends 'Attean::QueryPlanner::Cache';
+extends 'AtteanX::QueryPlanner::Cache';
 with 'AtteanX::Query::AccessPlan::LDF';
 
 1;
