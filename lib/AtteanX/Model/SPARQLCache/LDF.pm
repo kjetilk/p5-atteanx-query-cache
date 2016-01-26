@@ -31,11 +31,20 @@ around 'cost_for_plan' => sub {
 		$plan->cost($cost);
 		return $cost;
 	} elsif ($cost && any { $plan->isa($_) } @passthroughs) {
-		$self->log->debug("Use orignal's cost for '" . ref($plan) . "'");
-		return $cost
+		# In here, we just pass the plans that probably do not need
+		# balancing against others
+		$self->log->debug("Use original's cost for '" . ref($plan) . "'");
+		return $cost;
 	} elsif ($cost) {
-		$self->log->debug("Multiply original's cost for '" . ref($plan) . "'");
-		$cost *= 10; # TODO: Just multiply by a factor for now...
+		# This is where the plans that needs to be balanced against LDFs go
+		if ($cost <= 1000
+			 && $plan->isa('AtteanX::Store::SPARQL::Plan::BGP')
+			 && (scalar(@{ $plan->children }) == 1)) {
+			$self->log->debug("Set cost for single BGP SPARQL plan");
+			$cost = 1001;
+		}
+
+#		$cost *= 10; # TODO: Just multiply by a factor for now...
 	}
 	return $cost;
 };
