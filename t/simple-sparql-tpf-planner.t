@@ -57,9 +57,17 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 {
 
-	my $store	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-	isa_ok($store, 'AtteanX::Store::SPARQL');
-	my $model	= AtteanX::Model::SPARQLCache->new( store => $store, cache => $cache );
+	my $sparqlstore	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/sparql'));
+	isa_ok($sparqlstore, 'AtteanX::Store::SPARQL');
+	my $ldfstore	= Attean->get_store('LDF')->new('endpoint_url' => 'http://test.invalid/ldf');
+	isa_ok($ldfstore, 'AtteanX::Store::LDF');
+	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
+																		  ldf_store => $ldfstore,
+																		  cache => $cache );
+	isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
+	isa_ok($model, 'AtteanX::Model::SPARQLCache');
+	isa_ok($model, 'AtteanX::Model::SPARQL');
+
 	my $graph = iri('http://test.invalid/graph');
 	my $t		= triple(variable('s'), iri('p'), literal('1'));
 	my $u		= triple(variable('s'), iri('p'), variable('o'));
@@ -95,6 +103,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		isa_ok($plan, 'Attean::Plan::Quad');
 		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
+
+done_testing;
+exit 0;
 
 	subtest '4-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
