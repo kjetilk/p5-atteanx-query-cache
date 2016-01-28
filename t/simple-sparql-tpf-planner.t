@@ -45,7 +45,7 @@ use AtteanX::Store::SPARQL;
 use AtteanX::Store::LDF;
 use AtteanX::Model::SPARQLCache::LDF;
 use Log::Any::Adapter;
-Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
+Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr', category => qr/AtteanX::QueryPlanner::Cache AtteanX::Model::SPARQLCache::LDF/) if ($ENV{TEST_VERBOSE});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
@@ -200,24 +200,22 @@ my $test = TestLDFCreateStore->new;
 		}
 	};
 
-done_testing;
-exit 0;
-
-
 
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		
+		foreach my $plan (@plans){
+			print "\n". $plan->as_string;
+		}
 		# The first two plans should be the "best", containing a HashJoin over
-		# a Table and a SPARQLBGP. The order or the join operands is irrelevant,
-		# because we don't know enough about cardinality of SPARQLBGP plans to
-		# estimate which side is going to be smaller.
+		# a Table and a LDF.
 		foreach my $plan (@plans[0..1]) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
 			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
+			my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+			is(scalar(@ldfs), 1, 'First 2 plans contain 1 table sub-plan');
 		}
 
 		my $plan = $plans[0];
@@ -228,12 +226,17 @@ exit 0;
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 		}
 		
-		my ($table, $bgpplan)	= @children;
+		my ($table,$ldfplan)	= @children;
 		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
-		isa_ok($bgpplan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Then on SPARQL BGP');
-		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
-		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
+		isa_ok($ldfplan, 'AtteanX::Store::LDF::Plan::Triple', 'Then on LDF triple');
+		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <q>, <a> }', 'Child plan OK');
 	};
+
+	done_testing;
+	exit 0;
+	
+
+
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
