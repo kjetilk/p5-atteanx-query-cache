@@ -146,33 +146,16 @@ my $test = TestLDFCreateStore->new;
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 2, "Got two plans");
+		is(scalar @plans, 3, "Got three plans");
 		my $plan = $plans[0];
-
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
-		my $rows	= $plan->rows;
-		is(scalar(@$rows), 3, 'Got three rows back');
-		foreach my $row (@$rows) {
-			my @vars = sort $row->variables;
-			is(scalar(@vars), 2, 'Each result has two variables');
-			is($vars[0], 'o', 'First variable name is correct');
-			is($vars[1], 's', 'Second variable name is correct');
-			does_ok($row->value('s'), 'Attean::API::IRI');
-			does_ok($row->value('o'), 'Attean::API::IRI');
-		}
-		my @testrows = sort {$a->value('o')->as_string cmp $b->value('o')->as_string} @$rows;
-
-		ok($testrows[0]->value('s')->equals(iri('http://example.org/foo')), 'First triple subject IRI is OK'); 
-		ok($testrows[0]->value('o')->equals(iri('http://example.org/bar')), 'First triple object IRI is OK'); 
-		ok($testrows[1]->value('s')->equals(iri('http://example.com/foo')), 'Second triple subject IRI is OK'); 
-		ok($testrows[1]->value('o')->equals(iri('http://example.org/baz')), 'Second triple object IRI is OK'); 
-		ok($testrows[2]->value('s')->equals(iri('http://example.com/foo')), 'Third triple subject IRI is OK'); 
-		ok($testrows[2]->value('o')->equals(iri('http://example.org/foobar')), 'Third triple object IRI is OK'); 
-
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'Attean::Plan::Quad');
-		is($plans[1]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plans[1], 'AtteanX::Store::LDF::Plan::Triple');
+		is($plans[1]->plan_as_string, 'LDFQuad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		does_ok($plans[2], 'Attean::API::Plan', '1-triple BGP');
+		isa_ok($plans[2], 'Attean::Plan::Quad');
+		is($plans[2]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
 done_testing;
