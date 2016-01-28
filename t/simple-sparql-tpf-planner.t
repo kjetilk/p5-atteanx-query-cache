@@ -177,15 +177,12 @@ my $test = TestLDFCreateStore->new;
 		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
 	};
 
-done_testing;
-exit 0;
-
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 1, 'Got 1 plan');
 		foreach my $plan (@plans) {
-#			warn $plan->as_string;
+			warn $plan->as_string;
 			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
 		}
 		my $plan = $plans[0];
@@ -196,6 +193,11 @@ exit 0;
 			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
 		}
 	};
+
+done_testing;
+exit 0;
+
+
 
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
