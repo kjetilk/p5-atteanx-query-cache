@@ -179,15 +179,20 @@ my $test = TestLDFCreateStore->new;
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 1, 'Got 1 plan');
+		is(scalar @plans, 5, 'Got 5 plans');
+		my $plan = shift @plans;
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'First Plan is SPARQLBGP');
+		like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
+		foreach my $cplan (@{$plan->children}) {
+			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
+			ok(! $cplan->isa('AtteanX::Store::LDF::Plan::Triple'), 'But not an LDF triple');
+		}
 		foreach my $plan (@plans) {
-			warn $plan->as_string;
-			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
-			like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
+			does_ok($plan, 'Attean::API::Plan::Join', 'The rest are joins');
 			foreach my $cplan (@{$plan->children}) {
-				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-				isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
-				ok(! $cplan->isa('AtteanX::Store::LDF::Plan::Triple'), 'But not an LDF triple');
+				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
+				isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple', 'which is a LDF triple');
 			}
 		}
 	};
