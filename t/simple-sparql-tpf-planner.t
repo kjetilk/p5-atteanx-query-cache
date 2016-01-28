@@ -184,13 +184,12 @@ my $test = TestLDFCreateStore->new;
 		foreach my $plan (@plans) {
 			warn $plan->as_string;
 			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
-		}
-		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
-		like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
-		foreach my $cplan (@{$plan->children}) {
-			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
+			like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
+			foreach my $cplan (@{$plan->children}) {
+				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+				isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
+				ok(! $cplan->isa('AtteanX::Store::LDF::Plan::Triple'), 'But not an LDF triple');
+			}
 		}
 	};
 
