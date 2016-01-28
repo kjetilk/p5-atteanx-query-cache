@@ -25,7 +25,7 @@ around 'cost_for_plan' => sub {
  	my $planner	= shift;
 	my @passthroughs = qw/Attean::Plan::Table Attean::Plan::Quad/;
 	my $cost = $orig->(@params);
-	$self->log->debug('Cost for original plan were ' . $cost || 'not defined');
+	$self->log->debug('Cost for original plan were ' . defined($cost) ? $cost : 'not defined');
 	if ($plan->isa('AtteanX::Store::LDF::Plan::Triple')) {
 		$cost = $self->ldf_store->cost_for_plan($plan);
 		$plan->cost($cost);
