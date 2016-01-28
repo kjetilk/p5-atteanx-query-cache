@@ -158,44 +158,9 @@ my $test = TestLDFCreateStore->new;
 		is($plans[2]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
-done_testing;
-exit 0;
-
-
-
-
-
-	subtest '1-triple BGP single variable object, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('<http://example.org/foo> <p> ?v001 .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-		$cache->set('<http://example.org/foo> <dahut> ?v001 .', ['"Le Dahu"@fr', '"Dahut"@en']);
-		$cache->set('?v001 <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
-		my $tp = triplepattern(iri('http://example.org/foo'),
-									  iri('dahut'),
-									  variable('name'));
-		my $bgp		= Attean::Algebra::BGP->new(triples => [$tp]);
-		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 2, 'Got two plans');
-		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
-		my $rows	= $plan->rows;
-		is(scalar(@$rows), 2, 'Got two rows back');
-		foreach my $row (@$rows) {
-			my @vars = $row->variables;
-			is($vars[0], 'name', 'Variable name is correct');
-			does_ok($row->value('name'), 'Attean::API::Literal');
-		}
-		ok(${$rows}[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
-		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
-
-		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'Attean::Plan::Quad');
-		is($plans[1]->plan_as_string, 'Quad { <http://example.org/foo>, <dahut>, ?name, <http://test.invalid/graph> }', 'Good plan');
-	};
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
-		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
+		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined, no LDF interfering");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 1, 'Got just 1 plans');
@@ -211,6 +176,9 @@ exit 0;
 		my $plan = $plans[0];
 		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
 	};
+
+done_testing;
+exit 0;
 
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
