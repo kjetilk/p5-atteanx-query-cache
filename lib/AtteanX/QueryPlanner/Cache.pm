@@ -114,11 +114,13 @@ around 'join_plans' => sub {
 			} elsif ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Quad'))) {
 				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
-# 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs));
+				my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $rhs->subject, predicate => $rhs->predicate, object => $rhs->object, distinct => 0);
+ 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$lhs], @restargs));
 			} elsif ($rhs->isa('Attean::Plan::Table') && ($lhs->isa('Attean::Plan::Quad'))) {
 				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$new_bgp_plan], @restargs));
-# 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
+				my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $lhs->subject, predicate => $lhs->predicate, object => $lhs->object, distinct => 0);
+ 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$rhs], @restargs));
 			} elsif ($lhs->isa('Attean::Plan::Quad') &&
 				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 				 if (scalar(@join_vars)) {
@@ -126,6 +128,8 @@ around 'join_plans' => sub {
 				} else {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $lhs->subject, predicate => $lhs->predicate, object => $lhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$rhs], @restargs));
 				}
 			}
 			elsif ($rhs->isa('Attean::Plan::Quad') &&
@@ -135,6 +139,8 @@ around 'join_plans' => sub {
 				} else {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs));
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $rhs->subject, predicate => $rhs->predicate, object => $rhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$lhs], @restargs));
 				}
 			}
 			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
@@ -153,6 +159,9 @@ around 'join_plans' => sub {
 					my $lhs_bgp = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 					my $rhs_bgp = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs_bgp], [$rhs_bgp], @restargs));
+					my $lhs_ldf = AtteanX::Store::LDF::Plan::Triple->new(subject => $lhs->subject, predicate => $lhs->predicate, object => $lhs->object, distinct => 0);
+					my $rhs_ldf = AtteanX::Store::LDF::Plan::Triple->new(subject => $rhs->subject, predicate => $rhs->predicate, object => $rhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs_ldf], [$rhs_ldf], @restargs));
 				}
 			} elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
 				my ($lhs_child, $rhs_child)	= @{ $rhs->children };
@@ -167,10 +176,14 @@ around 'join_plans' => sub {
 				} elsif ($lhs_child->isa('Attean::Plan::Table') && $rhs_child->isa('Attean::Plan::Table')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs)); # TODO: Is this correct?
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $lhs->subject, predicate => $lhs->predicate, object => $lhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$rhs], @restargs));
 				} else {
 					# Now, deal with any bare quads
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $lhs->subject, predicate => $lhs->predicate, object => $lhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$rhs], @restargs));
 					$self->log->debug('RHS child plans are ' . ref($lhs_child) . ' and ' . ref($rhs_child));
 				}
 			}
@@ -187,10 +200,14 @@ around 'join_plans' => sub {
 				} elsif ($lhs_child->isa('Attean::Plan::Table') && $rhs_child->isa('Attean::Plan::Table')) {
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs)); # TODO: Is this correct?
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $rhs->subject, predicate => $rhs->predicate, object => $rhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$lhs], @restargs));
 				} else {
 					# Now, deal with any bare quads
 					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
+					my $new_ldf_plan = AtteanX::Store::LDF::Plan::Triple->new(subject => $rhs->subject, predicate => $rhs->predicate, object => $rhs->object, distinct => 0);
+					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_ldf_plan], [$lhs], @restargs));
 					$self->log->debug('LHS child plans are ' . ref($lhs_child) . ' and ' . ref($rhs_child));
 				}
 			} else {
