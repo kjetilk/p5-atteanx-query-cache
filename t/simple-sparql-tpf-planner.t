@@ -121,10 +121,7 @@ my $test = TestLDFCreateStore->new;
 		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
-done_testing;
-exit 0;
-
-	subtest '4-triple BGP with join variable with cache one cached' => sub {
+	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -139,7 +136,6 @@ exit 0;
 		}
 	};
 
-
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
 		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
@@ -152,7 +148,7 @@ exit 0;
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 2, "Got two plans");
 		my $plan = $plans[0];
-#		warn $plan->as_string;
+
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
@@ -178,6 +174,13 @@ exit 0;
 		isa_ok($plans[1], 'Attean::Plan::Quad');
 		is($plans[1]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
+
+done_testing;
+exit 0;
+
+
+
+
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
