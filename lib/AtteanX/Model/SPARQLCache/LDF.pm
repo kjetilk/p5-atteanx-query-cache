@@ -11,6 +11,7 @@ use List::MoreUtils qw(any);
 use namespace::clean;
 
 extends 'AtteanX::Model::SPARQLCache';
+with 'MooX::Log::Any';
 
 has 'ldf_store' => (is => 'ro',
 						  isa => InstanceOf['AtteanX::Store::LDF'],
@@ -25,7 +26,10 @@ around 'cost_for_plan' => sub {
  	my $planner	= shift;
 	my @passthroughs = qw/Attean::Plan::Table Attean::Plan::Quad/;
 	my $cost = $orig->(@params);
-	$self->log->debug('Cost for original plan were ' . defined($cost) ? $cost : 'not defined');
+	if ($self->log->is_debug) {
+		my $logcost = $cost || 'not defined';
+		$self->log->debug('Cost for original plan \'' . ref($plan) . "' was $logcost.");
+	}
 	if ($plan->isa('AtteanX::Store::LDF::Plan::Triple')) {
 		$cost = $self->ldf_store->cost_for_plan($plan);
 		$plan->cost($cost);
