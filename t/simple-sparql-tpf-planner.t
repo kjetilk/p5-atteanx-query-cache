@@ -54,19 +54,18 @@ isa_ok($p, 'Attean::QueryPlanner');
 isa_ok($p, 'AtteanX::QueryPlanner::Cache::LDF');
 does_ok($p, 'Attean::API::CostPlanner');
 
+package TestLDFCreateStore {
+        use Moo;
+        with 'Test::Attean::Store::LDF::Role::CreateStore';
+};
+
+my $test = TestLDFCreateStore->new;
+
 
 {
 
 	my $sparqlstore	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/sparql'));
 	isa_ok($sparqlstore, 'AtteanX::Store::SPARQL');
-	my $ldfstore	= Attean->get_store('LDF')->new('endpoint_url' => 'http://test.invalid/ldf');
-	isa_ok($ldfstore, 'AtteanX::Store::LDF');
-	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
-																		  ldf_store => $ldfstore,
-																		  cache => $cache );
-	isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
-	isa_ok($model, 'AtteanX::Model::SPARQLCache');
-	isa_ok($model, 'AtteanX::Model::SPARQL');
 
 	my $graph = iri('http://test.invalid/graph');
 	my $t		= triple(variable('s'), iri('p'), literal('1'));
@@ -77,6 +76,16 @@ does_ok($p, 'Attean::API::CostPlanner');
 	my $y		= triple(variable('o'), iri('b'), literal('2'));
 	my $z		= triple(variable('a'), iri('c'), variable('s'));
 	my $s		= triple(iri('a'), variable('p'), variable('o'));
+
+	my $ldfstore	= $test->create_store(triples => [$t,$u,$v,$w,$x,$y,$z,$s]);
+
+	isa_ok($ldfstore, 'AtteanX::Store::LDF');
+	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
+																		  ldf_store => $ldfstore,
+																		  cache => $cache );
+	isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
+	isa_ok($model, 'AtteanX::Model::SPARQLCache');
+	isa_ok($model, 'AtteanX::Model::SPARQL');
 
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");
@@ -105,6 +114,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		isa_ok($plan, 'Attean::Plan::Quad');
 		isa_ok($plan, 'AtteanX::Store::LDF::Plan::Triple');
 		is($plan->plan_as_string, 'LDFQuad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good LDF plan');
+		is($model->cost_for_plan($plan), 381, 'Cost for plan is 381');
 		$plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Quad');
