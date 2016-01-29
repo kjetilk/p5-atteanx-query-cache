@@ -10,6 +10,7 @@ our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001';
 
 use Moo;
+use AtteanX::Query::AccessPlan::LDF;
 
 extends 'AtteanX::QueryPlanner::Cache';
 with 'AtteanX::Query::AccessPlan::LDF';
