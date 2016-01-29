@@ -42,7 +42,7 @@ around 'plans_for_algebra' => sub {
 																												  distinct => 0);
 										 }
 										 if ($handled && $self->log->is_debug) {
-											 $self->log->debug("Rewriter will add plan:\n" . $rewritten->as_string);
+											 $self->log->debug("Rewriter will add subplan:\n" . $rewritten->as_string);
 										 }
 										 return ($handled, $descend, $rewritten);
 									 });
