@@ -28,7 +28,7 @@ around 'cost_for_plan' => sub {
 	$self->log->debug('Cost for original plan were ' . defined($cost) ? $cost : 'not defined');
 	if ($plan->isa('AtteanX::Store::LDF::Plan::Triple')) {
 		$cost = $self->ldf_store->cost_for_plan($plan);
-		$plan->cost($cost);
+		$plan->cost($cost); # TODO: check if this should be done elsewhere too
 		return $cost;
 	} elsif ($cost && any { $plan->isa($_) } @passthroughs) {
 		# In here, we just pass the plans that probably do not need
