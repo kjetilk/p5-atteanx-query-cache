@@ -120,20 +120,23 @@ my $test = TestLDFCreateStore->new;
 		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
-	# subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
-	# 	my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
-	# 	my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-	# 	is(scalar @plans, 5, 'Got 5 plans');
-	# 	my $plan = $plans[0];
-	# 	does_ok($plan, 'Attean::API::Plan::Join');
-	# 	my @c1plans = sort @{$plan->children};
-	# 	isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
-	# 	isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
-	# 	is(scalar @{$c1plans[1]->children}, 3, '...with three children');
-	# 	foreach my $plan (@{$c1plans[1]->children}) {
-	# 		isa_ok($plan, 'Attean::Plan::Quad', 'All children are quads');
-	# 	}
-	# };
+	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
+		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		foreach my $plan (@plans) {
+			warn $plan->as_string;
+		}
+		is(scalar @plans, 5, 'Got 5 plans');
+		my $plan = $plans[0];
+		does_ok($plan, 'Attean::API::Plan::Join');
+		my @c1plans = sort @{$plan->children};
+		isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
+		isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
+		foreach my $plan (@{$c1plans[1]->children}) {
+			isa_ok($plan, 'Attean::Plan::Quad', 'All children are quads');
+		}
+	};
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
