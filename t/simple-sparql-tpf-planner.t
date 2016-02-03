@@ -75,7 +75,7 @@ my $test = TestLDFCreateStore->new;
 	my $x		= triplepattern(variable('s'), iri('http://example.org/m/q'), iri('http://example.org/m/a'));
 	my $y		= triplepattern(variable('o'), iri('http://example.org/m/b'), literal('2'));
 	my $z		= triplepattern(variable('a'), iri('http://example.org/m/c'), variable('s'));
-	my $s		= triple(iri('http://example.org/m/a'), variable('p'), variable('o'));
+	my $s		= triplepattern(iri('http://example.org/m/a'), variable('p'), variable('o'));
 
 	my $ldfstore	= $test->create_store(triples => [$t,$u,$v,$w,$x,$y,$z,$s]);
 
