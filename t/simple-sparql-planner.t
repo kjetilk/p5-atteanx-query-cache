@@ -54,7 +54,7 @@ isa_ok($p, 'AtteanX::QueryPlanner::Cache');
 does_ok($p, 'Attean::API::CostPlanner');
 
 {
-
+	# These tests does not actually look up anything in a real store, it just simulates
 	my $store	= Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
 	isa_ok($store, 'AtteanX::Store::SPARQL');
 	my $model	= AtteanX::Model::SPARQLCache->new( store => $store, cache => $cache );
