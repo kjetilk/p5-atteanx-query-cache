@@ -59,14 +59,14 @@ does_ok($p, 'Attean::API::CostPlanner');
 	isa_ok($store, 'AtteanX::Store::SPARQL');
 	my $model	= AtteanX::Model::SPARQLCache->new( store => $store, cache => $cache );
 	my $graph = iri('http://test.invalid/graph');
-	my $t		= triple(variable('s'), iri('p'), literal('1'));
-	my $u		= triple(variable('s'), iri('p'), variable('o'));
-	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
-	my $w		= triple(variable('a'), iri('b'), iri('c'));
-	my $x		= triple(variable('s'), iri('q'), iri('a'));
-	my $y		= triple(variable('o'), iri('b'), literal('2'));
-	my $z		= triple(variable('a'), iri('c'), variable('s'));
-	my $s		= triple(iri('a'), variable('p'), variable('o'));
+	my $t		= triplepattern(variable('s'), iri('p'), literal('1'));
+	my $u		= triplepattern(variable('s'), iri('p'), variable('o'));
+	my $v		= triplepattern(variable('s'), iri('q'), blank('xyz'));
+	my $w		= triplepattern(variable('a'), iri('b'), iri('c'));
+	my $x		= triplepattern(variable('s'), iri('q'), iri('a'));
+	my $y		= triplepattern(variable('o'), iri('b'), literal('2'));
+	my $z		= triplepattern(variable('a'), iri('c'), variable('s'));
+	my $s		= triplepattern(iri('a'), variable('p'), variable('o'));
 
 	subtest 'Empty BGP, to test basics' => sub {
 		note("An empty BGP should produce the join identity table plan");

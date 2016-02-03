@@ -68,10 +68,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 											cache => $cache
 										 );
 	my $graph	= iri('http://example.org/');
-	my $t		= triple(variable('s'), iri('p'), literal('1'));
-	my $u		= triple(variable('s'), iri('p'), variable('o'));
-	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
-	my $w		= triple(variable('a'), iri('b'), iri('c'));
+	my $t		= triplepattern(variable('s'), iri('p'), literal('1'));
+	my $u		= triplepattern(variable('s'), iri('p'), variable('o'));
+	my $v		= triplepattern(variable('s'), iri('q'), blank('xyz'));
+	my $w		= triplepattern(variable('a'), iri('b'), iri('c'));
 	$cache->set('?v001 <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 	$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 	$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);

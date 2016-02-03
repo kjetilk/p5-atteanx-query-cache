@@ -68,13 +68,13 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($sparqlstore, 'AtteanX::Store::SPARQL');
 
 	my $graph = iri('http://test.invalid/graph');
-	my $t		= triple(variable('s'), iri('http://example.org/m/p'), literal('1'));
-	my $u		= triple(variable('s'), iri('http://example.org/m/p'), variable('o'));
-	my $v		= triple(variable('s'), iri('http://example.org/m/q'), blank('xyz'));
-	my $w		= triple(variable('a'), iri('http://example.org/m/b'), iri('http://example.org/m/c'));
-	my $x		= triple(variable('s'), iri('http://example.org/m/q'), iri('http://example.org/m/a'));
-	my $y		= triple(variable('o'), iri('http://example.org/m/b'), literal('2'));
-	my $z		= triple(variable('a'), iri('http://example.org/m/c'), variable('s'));
+	my $t		= triplepattern(variable('s'), iri('http://example.org/m/p'), literal('1'));
+	my $u		= triplepattern(variable('s'), iri('http://example.org/m/p'), variable('o'));
+	my $v		= triplepattern(variable('s'), iri('http://example.org/m/q'), blank('xyz'));
+	my $w		= triplepattern(variable('a'), iri('http://example.org/m/b'), iri('http://example.org/m/c'));
+	my $x		= triplepattern(variable('s'), iri('http://example.org/m/q'), iri('http://example.org/m/a'));
+	my $y		= triplepattern(variable('o'), iri('http://example.org/m/b'), literal('2'));
+	my $z		= triplepattern(variable('a'), iri('http://example.org/m/c'), variable('s'));
 	my $s		= triple(iri('http://example.org/m/a'), variable('p'), variable('o'));
 
 	my $ldfstore	= $test->create_store(triples => [$t,$u,$v,$w,$x,$y,$z,$s]);
