@@ -68,14 +68,14 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($sparqlstore, 'AtteanX::Store::SPARQL');
 
 	my $graph = iri('http://test.invalid/graph');
-	my $t		= triple(variable('s'), iri('p'), literal('1'));
-	my $u		= triple(variable('s'), iri('p'), variable('o'));
-	my $v		= triple(variable('s'), iri('q'), blank('xyz'));
-	my $w		= triple(variable('a'), iri('b'), iri('c'));
-	my $x		= triple(variable('s'), iri('q'), iri('a'));
-	my $y		= triple(variable('o'), iri('b'), literal('2'));
-	my $z		= triple(variable('a'), iri('c'), variable('s'));
-	my $s		= triple(iri('a'), variable('p'), variable('o'));
+	my $t		= triple(variable('s'), iri('http://example.org/m/p'), literal('1'));
+	my $u		= triple(variable('s'), iri('http://example.org/m/p'), variable('o'));
+	my $v		= triple(variable('s'), iri('http://example.org/m/q'), blank('xyz'));
+	my $w		= triple(variable('a'), iri('http://example.org/m/b'), iri('http://example.org/m/c'));
+	my $x		= triple(variable('s'), iri('http://example.org/m/q'), iri('http://example.org/m/a'));
+	my $y		= triple(variable('o'), iri('http://example.org/m/b'), literal('2'));
+	my $z		= triple(variable('a'), iri('http://example.org/m/c'), variable('s'));
+	my $s		= triple(iri('http://example.org/m/a'), variable('p'), variable('o'));
 
 	my $ldfstore	= $test->create_store(triples => [$t,$u,$v,$w,$x,$y,$z,$s]);
 
@@ -88,6 +88,7 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($model, 'AtteanX::Model::SPARQL');
 
 	subtest 'Empty BGP, to test basics' => sub {
+		#plan skip_all => 'it works';
 		note("An empty BGP should produce the join identity table plan");
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
@@ -100,33 +101,39 @@ my $test = TestLDFCreateStore->new;
 
 	subtest '1-triple BGP single variable, with cache, not cached' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?v001 <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
-		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-		$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);
+		$cache->set('?v001 <http://example.org/m/p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
+		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?v001 <http://example.org/m/dahut> "1" .', ['<http://example.org/dahut>']);
+		#plan skip_all => 'it works';
 		
-		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
-		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
+		ok($model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
+		ok(! $model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 2, 'Two plans');
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'AtteanX::Store::LDF::Plan::Triple');
-		is($plan->plan_as_string, 'LDFTriple { ?s, <p>, ?o }', 'Good LDF plan');
+		is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
 		is($model->cost_for_plan($plan), 381, 'Cost for plan is 381');
 		$plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Quad');
-		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		is($plan->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
+
+done_testing;
+exit 0;
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
-		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+		$cache->set('?v002 <http://example.org/m/p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
-		$cache->set('?v002 <dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
-		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), variable('bar'))->canonicalize->tuples_string), 'Cache has been set');
+		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
+		$cache->set('?v002 <http://example.org/m/dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
+		#plan skip_all => 'it works';
+
+		ok($model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/p'), variable('bar'))->canonicalize->tuples_string), 'Cache has been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 
 		my @plans = $p->plans_for_algebra($bgp, $model, [$graph]);
@@ -136,14 +143,15 @@ my $test = TestLDFCreateStore->new;
 		isa_ok($plan, 'Attean::Plan::Table');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Store::LDF::Plan::Triple');
-		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <p>, ?o }', 'Good plan');
+		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good plan');
 		does_ok($plans[2], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[2], 'Attean::Plan::Quad');
-		is($plans[2]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		is($plans[2]->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
+		#plan skip_all => 'it works';
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined, no LDF interfering");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
@@ -162,6 +170,7 @@ my $test = TestLDFCreateStore->new;
 	};
 
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
+		#plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -211,8 +220,10 @@ my $test = TestLDFCreateStore->new;
 		my ($table,$ldfplan)	= @children;
 		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
 		isa_ok($ldfplan, 'AtteanX::Store::LDF::Plan::Triple', 'Then on LDF triple');
-		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <q>, <a> }', 'Child plan OK');
+		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/q>, <http://example.org/m/a> }', 'Child plan OK');
 	};
+	done_testing;
+	exit 0;
 
 
 	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
@@ -293,8 +304,8 @@ my $test = TestLDFCreateStore->new;
 		push(@triples, @{ $bgpplan2->children });
 		my @strings	= sort map { $_->as_string } @triples;
 		my @expected	= (
-			qq[- Quad { ?a, <c>, ?s, <http://test.invalid/graph> }\n],
-			qq[- Quad { ?o, <b>, "2", <http://test.invalid/graph> }\n],
+			qq[- Quad { ?a, <http://example.org/m/c>, ?s, <http://test.invalid/graph> }\n],
+			qq[- Quad { ?o, <http://example.org/m/b>, "2", <http://test.invalid/graph> }\n],
 		);
 		is_deeply(\@strings, \@expected);
 	};
@@ -316,8 +327,8 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '3-triple BGP with predicate variable' => sub {
-		$cache->set('<a> ?v002 ?v001 .', {'<p>' => ['<http://example.org/bar>'],
-													 '<q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+		$cache->set('<http://example.org/m/a> ?v002 ?v001 .', {'<http://example.org/m/p>' => ['<http://example.org/bar>'],
+													 '<http://example.org/m/q>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$s, $u, $y]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan::Join');
