@@ -214,12 +214,9 @@ my $test = TestLDFCreateStore->new;
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans){
-			print "\n". $plan->as_string;
-		}
-		# The first two plans should be the "best", containing a HashJoin over
+		# The first four plans should be the "best", containing a HashJoin over
 		# a Table and a LDF.
-		foreach my $plan (@plans[0..1]) {
+		foreach my $plan (@plans[0..3]) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
 			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
