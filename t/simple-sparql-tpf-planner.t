@@ -143,6 +143,32 @@ my $test = TestLDFCreateStore->new;
 		is($plan->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
 
+
+	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
+		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
+		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
+		print "\n";
+		foreach my $plan (@plans) {
+			print "FOO:\n". $plan->as_string . "\n";
+		}
+		is(scalar @plans, 5, 'Got 5 plans');
+		my $plan = $plans[0];
+		does_ok($plan, 'Attean::API::Plan::Join');
+		my @c1plans = sort @{$plan->children};
+		isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
+		isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
+		foreach my $plan (@{$c1plans[1]->children}) {
+			isa_ok($plan, 'Attean::Plan::Quad', 'All children are quads');
+		}
+	};
+
+	done_testing;
+	exit 0;
+	
+
+
+
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
 		$cache->set('?v002 <http://example.org/m/p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
@@ -237,32 +263,6 @@ my $test = TestLDFCreateStore->new;
 		isa_ok($ldfplan, 'AtteanX::Store::LDF::Plan::Triple', 'Then on LDF triple');
 		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/q>, <http://example.org/m/a> }', 'Child plan OK');
 	};
-	done_testing;
-	exit 0;
-
-
-	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
-		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
-		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		foreach my $plan (@plans) {
-			warn $plan->as_string;
-		}
-		is(scalar @plans, 5, 'Got 5 plans');
-		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan::Join');
-		my @c1plans = sort @{$plan->children};
-		isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
-		isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
-		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
-		foreach my $plan (@{$c1plans[1]->children}) {
-			isa_ok($plan, 'Attean::Plan::Quad', 'All children are quads');
-		}
-	};
-
-	done_testing;
-	exit 0;
-	
-
 
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
