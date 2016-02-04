@@ -109,7 +109,7 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($model, 'AtteanX::Model::SPARQL');
 
 	subtest 'Empty BGP, to test basics' => sub {
-		#plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		note("An empty BGP should produce the join identity table plan");
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
@@ -125,7 +125,7 @@ my $test = TestLDFCreateStore->new;
 		$cache->set('?v001 <http://example.org/m/p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v001 <http://example.org/m/dahut> "1" .', ['<http://example.org/dahut>']);
-		#plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		
 		ok($model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
 		ok(! $model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
