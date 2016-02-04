@@ -77,7 +77,28 @@ my $test = TestLDFCreateStore->new;
 	my $z		= triplepattern(variable('a'), iri('http://example.org/m/c'), variable('s'));
 	my $s		= triplepattern(iri('http://example.org/m/a'), variable('p'), variable('o'));
 
-	my $ldfstore	= $test->create_store(triples => [$t,$u,$v,$w,$x,$y,$z,$s]);
+	my $ldfstore	= $test->create_store(triples => [
+																	 triple(iri('http://example.org/foo'), iri('http://example.org/m/p'), literal('1')),
+																	 triple(iri('http://example.org/foo'), iri('http://example.org/m/p'), iri('http://example.org/bar')),
+																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/p'), iri('http://example.org/bar')),
+																	 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('1')),
+																	 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('o')),
+																	 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('dahut')),
+																	 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), literal('dahut')),
+																	 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), iri('http://example.org/baz')),
+																	 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), iri('http://example.org/foobar')),
+																	 triple(iri('http://example.com/bar'), iri('http://example.org/m/p'), literal('dahut')),
+																	 triple(iri('http://example.org/dahut'), iri('http://example.org/m/dahut'), literal('1')),
+																	 triple(iri('http://example.org/dahut'), iri('http://example.org/m/dahut'), literal('Foobar')),
+																	 triple(iri('http://example.org/dahut'), iri('http://example.org/m/q'), literal('xyz')),
+																	 triple(iri('http://example.com/dahut'), iri('http://example.org/m/b'), iri('http://example.org/m/c')),
+																	 triple(iri('http://example.com/dahut'), iri('http://example.org/m/b'), literal('2')),
+																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/baz')),
+																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/foobar')),
+																	 triple(iri('http://example.org/ma'), iri('http://example.org/m/c'), iri('http://example.org/foo')),
+																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/p'), iri('http://example.org/m/o')),
+																	]);
+
 
 	isa_ok($ldfstore, 'AtteanX::Store::LDF');
 	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
@@ -115,15 +136,12 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'AtteanX::Store::LDF::Plan::Triple');
 		is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
-		is($model->cost_for_plan($plan), 381, 'Cost for plan is 381');
+		is($model->cost_for_plan($plan), 583, 'Cost for plan is 583');
 		$plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Quad');
 		is($plan->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
 	};
-
-done_testing;
-exit 0;
 
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
@@ -312,7 +330,7 @@ exit 0;
 
 	subtest '3-triple BGP chain with cache on two' => sub {
 		# TODO: Also improve with cost model
-		$cache->set('?v001 <b> "2" .', ['<http://example.com/dahut>']);
+		$cache->set('?v001 <http://example.org/m/b> "2" .', ['<http://example.com/dahut>']);
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		my $plan = shift @plans;
