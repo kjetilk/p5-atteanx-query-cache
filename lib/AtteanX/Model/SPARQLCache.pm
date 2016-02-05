@@ -27,7 +27,6 @@ sub cost_for_plan {
  	my $plan	= shift;
  	my $planner	= shift;
 #	warn $plan->as_string;
-#	$self->log->debug("Cost for original plan were $cost");
 	if ($plan->isa('Attean::Plan::Table')) {
  		return 2;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
@@ -35,6 +34,7 @@ sub cost_for_plan {
 	} elsif ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 		# BGPs should have a cost proportional to the number of triple patterns,
 		# but be much more costly if they contain a cartesian product.
+		$self->log->trace('Estimating cost for single BGP');
 		if ($plan->children_are_variable_connected) {
 			return 20 * scalar(@{ $plan->children });
 		} else {
@@ -49,6 +49,9 @@ sub cost_for_plan {
 			} else {
 				$cost += 100 * scalar(@{ $bgp->children }) + 35;
 			}
+		}
+		if (defined($cost) && $self->log->is_trace) {
+			$self->log->trace('Total cost for all BGPs is ' . $cost);
 		}
 		return $cost;
 	}
