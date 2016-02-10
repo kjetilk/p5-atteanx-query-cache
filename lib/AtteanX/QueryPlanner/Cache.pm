@@ -111,87 +111,12 @@ around 'join_plans' => sub {
 				} else {
 					return Attean::Plan::NestedLoopJoin->new(children => [$lhs, $rhs], join_variables => \@join_vars, distinct => 0, ordered => []);
 				}
-			} elsif ($lhs->isa('Attean::Plan::Table') && ($rhs->isa('Attean::Plan::Quad'))) {
-				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
-				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
-# 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs));
-			} elsif ($rhs->isa('Attean::Plan::Table') && ($lhs->isa('Attean::Plan::Quad'))) {
-				my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
-				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$new_bgp_plan], @restargs));
-# 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
-			} elsif ($lhs->isa('Attean::Plan::Quad') &&
-				 $rhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				 if (scalar(@join_vars)) {
-					push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, @{ $rhs->children || []} ], distinct => 0, ordered => []));
-				} else {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
-				}
-			}
-			elsif ($rhs->isa('Attean::Plan::Quad') &&
-					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-				if (scalar(@join_vars)) {
-					push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs, @{ $lhs->children || []} ], distinct => 0, ordered => []));
-				} else {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs));
-				}
-			}
-			elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
+			} elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
 					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 				if (scalar(@join_vars)) {
 					push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(children => [@{ $lhs->children || []} , @{ $rhs->children || []} ], distinct => 0, ordered => []));
 				} else {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs));
-				}
-			}
-			elsif ($rhs->isa('Attean::Plan::Quad') &&
-					 $lhs->isa('Attean::Plan::Quad')) {
-				if (scalar(@join_vars)) {
-					push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, $rhs], distinct => 0, ordered => []));
-				} else {
-					my $lhs_bgp = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
-					my $rhs_bgp = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs_bgp], [$rhs_bgp], @restargs));
-				}
-			} elsif ($lhs->isa('Attean::Plan::Quad') && $rhs->does('Attean::API::Plan::Join')) {
-				my ($lhs_child, $rhs_child)	= @{ $rhs->children };
-				my @left_join_vars = $self->_join_vars($lhs, $lhs_child);
-				my @right_join_vars = $self->_join_vars($lhs, $rhs_child);
-				if ($lhs_child->isa('Attean::Plan::Quad') and scalar(@left_join_vars)) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, $lhs_child], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs_child], @restargs));
-				} elsif ($rhs_child->isa('Attean::Plan::Quad') and scalar(@right_join_vars)) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs, $rhs_child], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs_child], @restargs));
-				} elsif ($lhs_child->isa('Attean::Plan::Table') && $rhs_child->isa('Attean::Plan::Table')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs)); # TODO: Is this correct?
-				} else {
-					# Now, deal with any bare quads
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$lhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs], @restargs));
-					$self->log->debug('RHS child plans are ' . ref($lhs_child) . ' and ' . ref($rhs_child));
-				}
-			}
-			elsif ($rhs->isa('Attean::Plan::Quad') && $lhs->does('Attean::API::Plan::Join')) {
-				my ($lhs_child, $rhs_child)	= @{ $lhs->children };
-				my @left_join_vars = $self->_join_vars($rhs, $lhs_child);
-				my @right_join_vars = $self->_join_vars($rhs, $rhs_child);
-				if ($lhs_child->isa('Attean::Plan::Quad') and scalar(@left_join_vars)) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs, $lhs_child], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$rhs_child], @restargs));
-				} elsif ($rhs_child->isa('Attean::Plan::Quad') and scalar(@right_join_vars)) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs, $rhs_child], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs_child], @restargs));
-				} elsif ($lhs_child->isa('Attean::Plan::Table') && $rhs_child->isa('Attean::Plan::Table')) {
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$new_bgp_plan], @restargs)); # TODO: Is this correct?
-				} else {
-					# Now, deal with any bare quads
-					my $new_bgp_plan = AtteanX::Store::SPARQL::Plan::BGP->new(children => [$rhs], distinct => 0, ordered => []);
-					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$new_bgp_plan], [$lhs], @restargs));
-					$self->log->debug('LHS child plans are ' . ref($lhs_child) . ' and ' . ref($rhs_child));
 				}
 			} else {
 				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs));
@@ -206,6 +131,20 @@ around 'join_plans' => sub {
 	return @plans;
 };
 
+around 'access_plans' => sub {
+	my $orig			= shift;
+	my $self			= shift;
+	my $model			= shift;
+	my $active_graphs	= shift;
+	my $pattern			= shift;
+	my @plans			= $orig->($self, $model, $active_graphs, $pattern, @_);
+	my %seen;
+	if ($pattern->does('Attean::API::TriplePattern')) {
+		my $sp	= AtteanX::Store::SPARQL::Plan::BGP->new(children => [shift(@plans)], distinct => 0, ordered => []);
+		push(@plans, $sp);
+	}
+	return @plans;
+};
 
 1;
 
