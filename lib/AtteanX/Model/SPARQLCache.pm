@@ -71,9 +71,9 @@ sub cost_for_plan {
 			$cost	*= 100 unless ($plan->children_are_variable_connected);
 		}
 		if ($cost) {
-			$cost *= $countbgps;
+			$cost *= $countbgps * 1.2;
 			$cost = min($cost, 1_000_000_000);
-			return $cost;
+			return int($cost);
 		}
 	}
  	return;
