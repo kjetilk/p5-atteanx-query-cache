@@ -292,7 +292,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
 		foreach my $plan (@grandchildren) {
-			does_ok($plans[0], 'Attean::API::Plan');
+			does_ok($plan, 'Attean::API::Plan');
 		}
 		my ($table, $bgpplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Table');
