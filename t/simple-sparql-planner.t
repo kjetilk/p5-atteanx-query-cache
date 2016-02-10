@@ -90,8 +90,10 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Quad');
-		is($plan->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar @{$plan->children}, 1, '1-triple BGP child');
+		like($plan->as_string, qr|SPARQLBGP.*?Quad { \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
 
 	subtest '4-triple BGP with join variable with cache one cached' => sub {
@@ -145,8 +147,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		ok($testrows[2]->value('o')->equals(iri('http://example.org/foobar')), 'Third triple object IRI is OK'); 
 
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'Attean::Plan::Quad');
-		is($plans[1]->plan_as_string, 'Quad { ?s, <p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
+		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad { \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
@@ -174,8 +177,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
 
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'Attean::Plan::Quad');
-		is($plans[1]->plan_as_string, 'Quad { <http://example.org/foo>, <dahut>, ?name, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
+		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad { <http://example.org/foo>, <dahut>, \?name, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
