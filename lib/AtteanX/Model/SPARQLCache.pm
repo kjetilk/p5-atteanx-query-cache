@@ -42,19 +42,10 @@ sub cost_for_plan {
 		}
  	} else {
 		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
-		return unless scalar(@bgps);
-		my $cost;
-		foreach my $bgp (@bgps) {
-			if ($bgp->children_are_variable_connected) {
-				$cost += 10 * scalar(@{ $bgp->children }) + 26;
-			} else {
-				$cost += 100 * scalar(@{ $bgp->children }) + 35;
-			}
-		}
-		if (defined($cost) && $self->log->is_trace) {
-			$self->log->trace('Total cost for all BGPs is ' . $cost);
-		}
-		return $cost;
+		my $countbgps = scalar(@bgps);
+		return unless $countbgps;
+		# Now, we have SPARQLBGPs as subplans, which is usually not wanted
+		return $planner->cost_for_plan($plan, $self) * $countbgps;
 	}
  	return;
 };
