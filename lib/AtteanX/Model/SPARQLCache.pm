@@ -40,12 +40,36 @@ sub cost_for_plan {
 		} else {
 			return 200 * scalar(@{ $plan->children });
 		}
- 	} else {
+ 	} elsif ($plan->does('Attean::API::Plan::Join')) {
 		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
 		my $countbgps = scalar(@bgps);
 		return unless $countbgps;
 		# Now, we have SPARQLBGPs as subplans, which is usually not wanted
-		return $planner->cost_for_plan($plan, $self) * $countbgps;
+		my @children	= @{ $plan->children };
+		if ($self->log->is_trace) {
+			$self->log->trace("Found $countbgps SPARQL BGP subplans, immediate children are of type " . join(', ', map {ref} @children))
+		}
+		my $cost = 0;
+		# The below code is from Attean::API::SimpleCostPlanner
+		if ($plan->isa('Attean::Plan::NestedLoopJoin')) {
+			my $lcost		= $planner->cost_for_plan($children[0], $self);
+			my $rcost		= $planner->cost_for_plan($children[1], $self);
+			if ($lcost == 0) {
+				$cost	= $rcost;
+			} elsif ($rcost == 0) {
+				$cost	= $lcost;
+			} else {
+				$cost	= $lcost * $rcost;
+			}
+			$cost	*= 10 unless ($plan->children_are_variable_connected);
+		} elsif ($plan->isa('Attean::Plan::HashJoin')) {
+			my $joined		= $plan->children_are_variable_connected;
+			my $lcost		= $planner->cost_for_plan($children[0], $self);
+			my $rcost		= $planner->cost_for_plan($children[1], $self);
+			$cost	= ($lcost + $rcost);
+			$cost	*= 100 unless ($plan->children_are_variable_connected);
+		}
+		return $cost * $countbgps if ($cost);
 	}
  	return;
 };
