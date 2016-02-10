@@ -7,6 +7,7 @@ use warnings;
 use Moo;
 use Types::Standard qw(InstanceOf);
 use namespace::clean;
+use List::Util qw(min);
 
 extends 'AtteanX::Model::SPARQL';
 with 'MooX::Log::Any';
@@ -69,7 +70,11 @@ sub cost_for_plan {
 			$cost	= ($lcost + $rcost);
 			$cost	*= 100 unless ($plan->children_are_variable_connected);
 		}
-		return $cost * $countbgps if ($cost);
+		if ($cost) {
+			$cost *= $countbgps;
+			$cost = min($cost, 1_000_000_000);
+			return $cost;
+		}
 	}
  	return;
 };
