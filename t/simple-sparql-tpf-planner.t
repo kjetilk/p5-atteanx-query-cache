@@ -139,8 +139,10 @@ my $test = TestLDFCreateStore->new;
 		is($model->cost_for_plan($plan), 583, 'Cost for plan is 583');
 		$plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Quad');
-		is($plan->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar @{$plan->children}, 1, '1-triple BGP child');
+		like($plan->as_string, qr|SPARQLBGP.*?Quad { \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
 
 
@@ -163,8 +165,6 @@ my $test = TestLDFCreateStore->new;
 		}
 	};
 
-	done_testing;
-	exit 0;
 	
 
 
@@ -188,9 +188,9 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Store::LDF::Plan::Triple');
 		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good plan');
-		does_ok($plans[2], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[2], 'Attean::Plan::Quad');
-		is($plans[2]->plan_as_string, 'Quad { ?s, <http://example.org/m/p>, ?o, <http://test.invalid/graph> }', 'Good plan');
+		isa_ok($plans[2], 'AtteanX::Store::SPARQL::Plan::BGP');
+		is(scalar @{$plans[2]->children}, 1, '1-triple BGP child');
+		like($plans[2]->as_string, qr|SPARQLBGP.*?Quad { \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 
