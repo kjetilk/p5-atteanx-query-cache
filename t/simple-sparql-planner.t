@@ -279,7 +279,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		# sorting the strings should result in a HashJoin followed by a SPARQLBGP
 		my @children	= sort { "$a" cmp "$b" } @{ $plan->children };
 		foreach my $plan (@children) {
-			does_ok($plans[0], 'Attean::API::Plan');
+			does_ok($plan, 'Attean::API::Plan');
 		}
 		
 		my @triples;
