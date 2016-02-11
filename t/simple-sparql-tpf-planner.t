@@ -148,6 +148,8 @@ my $test = TestLDFCreateStore->new;
 
 	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
 #		plan skip_all => 'it works';
+		# This test should result in a join between a three-quad SPARQL
+		# BGP and a table from the cache
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		# print "\n";
