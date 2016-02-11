@@ -42,11 +42,10 @@ around 'cost_for_plan' => sub {
 		# This is where the plans that needs to be balanced against LDFs go
 		if ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 			if ($cost <= 1000 && (scalar(@{ $plan->children }) == 1)) {
-				$self->log->debug("Set cost for single BGP SPARQL plan");
+				$self->log->trace("Set cost for single BGP SPARQL plan");
 				$cost = 100001;
 			} else {
 				$cost = ($cost + 1) * 5;
-				$self->log->debug("Increase cost for other SPARQL BGPS now");
 			}
 		}
 			
