@@ -45,8 +45,8 @@ around 'cost_for_plan' => sub {
 				$self->log->debug("Set cost for single BGP SPARQL plan");
 				$cost = 100001;
 			} else {
-				$self->log->notice("Low cost for SPARQL BGPS now");
-				return scalar(@{ $plan->children }) * 15;
+				$cost = ($cost + 1) * 5;
+				$self->log->debug("Increase cost for other SPARQL BGPS now");
 			}
 		}
 			
