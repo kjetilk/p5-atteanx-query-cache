@@ -39,15 +39,16 @@ around 'cost_for_plan' => sub {
 		$self->log->debug("Use original's cost for '" . ref($plan) . "'");
 		return $cost;
 	} 
-		# This is where the plans that needs to be balanced against LDFs go
-		if ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
-			if ($cost <= 1000 && (scalar(@{ $plan->children }) == 1)) {
-				$self->log->trace("Set cost for single BGP SPARQL plan");
-				$cost = 1001;
-			} else {
-				$cost = ($cost + 1) * 5;
-			}
+	# This is where the plans that needs to be balanced against LDFs go
+	if ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+		if ($cost <= 1000 && (scalar(@{ $plan->children }) == 1)) {
+			$self->log->trace("Set cost for single BGP SPARQL plan");
+			$cost = 1001;
+		} else {
+			$cost = ($cost + 1) * 5;
 		}
+		return $cost;
+	}
 			
 
 #		$cost *= 10; # TODO: Just multiply by a factor for now...
