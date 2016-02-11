@@ -43,7 +43,7 @@ around 'cost_for_plan' => sub {
 		if ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
 			if ($cost <= 1000 && (scalar(@{ $plan->children }) == 1)) {
 				$self->log->trace("Set cost for single BGP SPARQL plan");
-				$cost = 100001;
+				$cost = 1001;
 			} else {
 				$cost = ($cost + 1) * 5;
 			}
