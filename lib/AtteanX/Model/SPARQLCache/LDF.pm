@@ -49,8 +49,28 @@ around 'cost_for_plan' => sub {
 		}
 		return $cost;
 	}
-			
-
+	# Now, penalize plan if any SPARQLBGP has a common variable with a LDFTriple
+	my %bgpvars;
+	my %ldfvars;
+	my $shared = 0;
+	$plan->walk(prefix => sub {
+						my $node = shift;
+						if ($node->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+							map { $bgpvars{$_} = 1 } @{$node->in_scope_variables};
+						}
+						elsif ($node->isa('AtteanX::Store::LDF::Plan::Triple')) {
+							map { $ldfvars{$_} = 1 } @{$node->in_scope_variables};
+							# TODO: A single loop should be sufficient
+						}
+						foreach my $lid (keys(%ldfvars)) {
+							if ($bgpvars{$lid}) {
+								$shared = 1;
+								last;
+								# TODO: Jump out of the walk here
+							}
+						}
+					});
+	  $cost += 1000 if ($shared);
 #		$cost *= 10; # TODO: Just multiply by a factor for now...
 	
 	return $cost;
