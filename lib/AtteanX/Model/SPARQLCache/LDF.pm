@@ -49,6 +49,10 @@ around 'cost_for_plan' => sub {
 		}
 		return $cost;
 	}
+	if ($cost && $plan->does('Attean::API::Plan::Join')) {
+		# Then, penalize the plan by the number of LDFs
+		$cost *= scalar $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+	}
 	# Now, penalize plan if any SPARQLBGP has a common variable with a LDFTriple
 	my %bgpvars;
 	my %ldfvars;
