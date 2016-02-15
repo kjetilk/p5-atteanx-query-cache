@@ -222,8 +222,9 @@ my $test = TestLDFCreateStore->new;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = shift @plans;
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');#, 'First Plan is SPARQLBGP');
-		like($plan->as_string, qr/SPARQLBGP/, 'SPARQL BGP serialisation');
+		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP') or diag('All plans: ' . join("\n", map {$_->as_string} @plans));
+		like($plan->as_string, qr/^- SPARQLBGP/, 'SPARQL BGP serialisation');
+		is(scalar (@{$plan->children}), 2, 'With two children');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
@@ -231,9 +232,11 @@ my $test = TestLDFCreateStore->new;
 		}
 		foreach my $plan (@plans) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'The rest are joins');
+		}
+		foreach my $plan (@plans[0..1]) {
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
-				isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple', 'which is a LDF triple');
+				isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple');
 			}
 		}
 	};
