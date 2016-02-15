@@ -109,7 +109,7 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($model, 'AtteanX::Model::SPARQL');
 
 	subtest 'Empty BGP, to test basics' => sub {
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		note("An empty BGP should produce the join identity table plan");
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
@@ -125,7 +125,7 @@ my $test = TestLDFCreateStore->new;
 		$cache->set('?v001 <http://example.org/m/p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v001 <http://example.org/m/dahut> "1" .', ['<http://example.org/dahut>']);
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		
 		ok($model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
 		ok(! $model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
@@ -147,7 +147,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		# This test should result in a join between a three-quad SPARQL
 		# BGP and a table from the cache
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
@@ -178,7 +178,7 @@ my $test = TestLDFCreateStore->new;
 													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v002 <http://example.org/m/dahut> ?v001 .', {'<http://example.org/dahut>' => ['"Foobar"']});
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 
 		ok($model->is_cached(triplepattern(variable('foo'), iri('http://example.org/m/p'), variable('bar'))->canonicalize->tuples_string), 'Cache has been set');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
@@ -198,7 +198,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined, no LDF interfering");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
@@ -217,7 +217,7 @@ my $test = TestLDFCreateStore->new;
 	};
 
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
-#		plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -243,6 +243,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
+		plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -272,17 +273,19 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
-		plan skip_all => 'not ready';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		foreach my $plan (@plans) {
 			warn $plan->as_string;
 		}
+#		die;
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
+		is(scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP'), 1, 'Just one BGP');
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
+		isa_ok($c1plans[0], 'Attean::Plan::NestedLoopJoin', 'specifically NestedLoop Join') or diag($c1plans[0]->as_string);
 		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
 		my @c2plans = sort @{$c1plans[0]->children};
@@ -290,9 +293,11 @@ my $test = TestLDFCreateStore->new;
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		isa_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
-		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
+		isa_ok($c2plans[1], 'AtteanX::Store::LDF::Plan::Triple');
 	};
+
+done_testing;
+exit 0;
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
