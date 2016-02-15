@@ -93,13 +93,16 @@ around 'cost_for_plan' => sub {
 						}
 						foreach my $lid (keys(%ldfvars)) {
 							if ($bgpvars{$lid}) {
-								$shared = 1;
+								$shared = $lid;
 								last;
 								# TODO: Jump out of the walk here
 							}
 						}
 					});
-	  $cost += 1000 if ($shared);
+	if ($shared) {
+		$self->log->debug("Penalizing for SPARQL and LDF common variable '?$shared'.");
+		$cost += 1000;
+	}
 #		$cost *= 10; # TODO: Just multiply by a factor for now...
 	
 	return $cost;
