@@ -33,7 +33,8 @@ around 'cost_for_plan' => sub {
 	if ($plan->isa('AtteanX::Store::LDF::Plan::Triple')) {
 		$cost = $self->ldf_store->cost_for_plan($plan);
 		return $cost;
-	} elsif ($cost && any { $plan->isa($_) } @passthroughs) {
+	}
+	if ($cost && any { $plan->isa($_) } @passthroughs) {
 		# In here, we just pass the plans that probably do not need
 		# balancing against others
 		$self->log->debug("Use original's cost for '" . ref($plan) . "'");
@@ -49,10 +50,34 @@ around 'cost_for_plan' => sub {
 		}
 		return $cost;
 	}
-	if ($cost && $plan->does('Attean::API::Plan::Join')) {
+	if ($plan->does('Attean::API::Plan::Join')) {
 		# Then, penalize the plan by the number of LDFs
-		$cost *= scalar $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+		my $countldfs = scalar $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+		return unless ($countldfs);
+		unless ($cost) {
+			my @children	= @{ $plan->children };
+			if ($plan->isa('Attean::Plan::NestedLoopJoin')) {
+				my $lcost		= $planner->cost_for_plan($children[0], $self);
+				my $rcost		= $planner->cost_for_plan($children[1], $self);
+				if ($lcost == 0) {
+					$cost	= $rcost;
+				} elsif ($rcost == 0) {
+					$cost	= $lcost;
+				} else {
+					$cost	= $lcost * $rcost;
+				}
+				$cost	*= 10 unless ($plan->children_are_variable_connected);
+			} elsif ($plan->isa('Attean::Plan::HashJoin')) {
+				my $joined		= $plan->children_are_variable_connected;
+				my $lcost		= $planner->cost_for_plan($children[0], $self);
+				my $rcost		= $planner->cost_for_plan($children[1], $self);
+				$cost	= ($lcost + $rcost);
+				$cost	*= 100 unless ($plan->children_are_variable_connected);
+			}
+		}
+		$cost *= $countldfs;
 	}
+
 	# Now, penalize plan if any SPARQLBGP has a common variable with a LDFTriple
 	my %bgpvars;
 	my %ldfvars;
