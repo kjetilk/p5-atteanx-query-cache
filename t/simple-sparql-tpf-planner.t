@@ -323,9 +323,6 @@ my $test = TestLDFCreateStore->new;
 		like($ldfplan2->as_string, qr(^- LDFTriple { \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
-done_testing;
-exit 0;
-
 	subtest '3-triple BGP chain with cache on two' => sub {
 		# TODO: Also improve with cost model
 		$cache->set('?v001 <http://example.org/m/b> "2" .', ['<http://example.com/dahut>']);
@@ -335,10 +332,10 @@ exit 0;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
-		my @bgps	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
-		is(scalar @bgps, 1, 'Should be only one BGP in the plan');
-		is(scalar @{ $bgps[0]->children }, 1, 'And that should just have one child');
-		isa_ok(${ $bgps[0]->children }[0], 'Attean::Plan::Quad', 'That has a Quad child');
+		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+		is(scalar @ldfs, 1, 'Should be only one LDF in the plan');
+		my $ldf = shift @ldfs;
+		like($ldf->as_string, qr(^- LDFTriple { \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
 
