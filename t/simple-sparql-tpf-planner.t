@@ -294,6 +294,7 @@ my $test = TestLDFCreateStore->new;
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
 		isa_ok($c2plans[1], 'AtteanX::Store::LDF::Plan::Triple');
+		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
 	};
 
 done_testing;
