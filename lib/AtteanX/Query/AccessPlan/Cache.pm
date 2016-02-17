@@ -7,7 +7,7 @@ package AtteanX::Query::AccessPlan::Cache;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001';
+our $VERSION   = '0.001_01';
 
 use Moo::Role;
 use Carp;
