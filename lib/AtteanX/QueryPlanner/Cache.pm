@@ -7,7 +7,7 @@ package AtteanX::QueryPlanner::Cache;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001';
+our $VERSION   = '0.001_01';
 
 use Moo;
 use Types::Standard qw(InstanceOf);

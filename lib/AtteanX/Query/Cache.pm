@@ -5,7 +5,7 @@ use warnings;
 package AtteanX::Query::Cache;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001';
+our $VERSION   = '0.001_01';
 
 1;
 
