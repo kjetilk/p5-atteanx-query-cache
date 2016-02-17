@@ -92,7 +92,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @{$plan->children}, 1, '1-triple BGP child');
-		like($plan->as_string, qr|SPARQLBGP.*?Quad { \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
 
@@ -149,7 +149,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
-		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad { \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
@@ -179,7 +179,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
-		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad { <http://example.org/foo>, <dahut>, \?name, <http://test.invalid/graph> }|s, 'Good plan');
+		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad \{ <http://example.org/foo>, <dahut>, \?name, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {

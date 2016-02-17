@@ -141,7 +141,7 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @{$plan->children}, 1, '1-triple BGP child');
-		like($plan->as_string, qr|SPARQLBGP.*?Quad { \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
 
@@ -193,7 +193,7 @@ my $test = TestLDFCreateStore->new;
 		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good plan');
 		isa_ok($plans[2], 'AtteanX::Store::SPARQL::Plan::BGP');
 		is(scalar @{$plans[2]->children}, 1, '1-triple BGP child');
-		like($plans[2]->as_string, qr|SPARQLBGP.*?Quad { \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		like($plans[2]->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
 
 
