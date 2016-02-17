@@ -1,6 +1,6 @@
 # This file acts as the project's changelog.
 
-`AtteanX-Query-Cache 0.001 cpan:KJETILK`
-	issued  2015-06-11;
-	label   "Initial release".
+`AtteanX-Query-Cache 0.001_01 cpan:KJETILK`
+	issued  2016-02-17;
+	label   "Initial alpha release".
 
