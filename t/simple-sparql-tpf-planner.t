@@ -317,7 +317,7 @@ exit 0;
 		my ($join, $ldfplan1)	= @children;
 		isa_ok($join, 'Attean::Plan::HashJoin');
 		isa_ok($ldfplan1, 'AtteanX::Store::LDF::Plan::Triple');
-		like($ldfplan1->as_string, qr(^- LDFTriple { \?o, <http://example\.org/m/b>, "2" }), 'First LDF ok');
+		like($ldfplan1->as_string, qr(^- LDFTriple \{ \?o, <http://example\.org/m/b>, "2" }), 'First LDF ok');
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
 		foreach my $cplan (@grandchildren) {
@@ -326,7 +326,7 @@ exit 0;
 		my ($table, $ldfplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Table');
 		isa_ok($ldfplan2, 'AtteanX::Store::LDF::Plan::Triple');
-		like($ldfplan2->as_string, qr(^- LDFTriple { \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
+		like($ldfplan2->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
 	subtest '3-triple BGP chain with cache on two' => sub {
@@ -341,7 +341,7 @@ exit 0;
 		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
 		is(scalar @ldfs, 1, 'Should be only one LDF in the plan');
 		my $ldf = shift @ldfs;
-		like($ldf->as_string, qr(^- LDFTriple { \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
+		like($ldf->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
 
