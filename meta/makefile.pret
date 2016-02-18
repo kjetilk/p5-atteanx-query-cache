@@ -18,7 +18,7 @@
         :runtime-requirement    [ :on "Digest::MD4"^^:CpanId ];
         :runtime-requirement    [ :on "Class::Method::Modifiers"^^:CpanId ];
         :runtime-requirement    [ :on "LWP::UserAgent::CHICaching"^^:CpanId ];
-        :runtime-requirement    [ :on "Types::Standard"^^:CpanId ];
+        :runtime-requirement    [ :on "Types::Standard 0.008"^^:CpanId ];
         :runtime-requirement    [ :on "MooX::Log::Any"^^:CpanId ];
         :runtime-requirement    [ :on "List::MoreUtils"^^:CpanId ];
         :runtime-requirement    [ :on "AtteanX::Store::SPARQL 0.002"^^:CpanId ];
