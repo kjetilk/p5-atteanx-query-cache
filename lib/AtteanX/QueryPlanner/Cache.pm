@@ -66,7 +66,6 @@ sub coalesce_rotated_join {
 	my ($lhs, $rhs)	= @{ $p->children };
 	my @join_vars	= $self->_join_vars($lhs, $rhs);
 	if (scalar(@join_vars)) {
-#		$DB::single=1;
 		foreach my $q ($lhs, $rhs) {
 			if ($q->isa('Attean::Plan::Quad')) {
 				push(@quads, $q);
@@ -76,7 +75,6 @@ sub coalesce_rotated_join {
 				return $p; # bail-out
 			}
 		}
-#		$DB::single=1;
 		my $count	= scalar(@quads);
 		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
 		if ($self->log->is_debug && $count >= 2) {
@@ -103,7 +101,6 @@ around 'join_plans' => sub {
 	foreach my $lhs (@{ $lplans }) {
 		$self->log->trace("BGP Constructing Left:\n" . $lhs->as_string);
 		foreach my $rhs (@{ $rplans }) {
-	#		$DB::single=1;
 			$self->log->trace("BGP Constructing Right:\n" . $rhs->as_string);
 			my @join_vars = $self->_join_vars($lhs, $rhs);
 
