@@ -276,10 +276,6 @@ my $test = TestLDFCreateStore->new;
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans) {
-			warn $plan->as_string;
-		}
-#		die;
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
 		is(scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP'), 1, 'Just one BGP');
