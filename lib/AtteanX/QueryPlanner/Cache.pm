@@ -35,6 +35,7 @@ sub allow_join_rotation {
  	$self->log->trace("Seeking to rotate:\n" . $join->as_string);
 	foreach my $p (@{ $join->children }) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
+		$quads++ if ($p->isa('AtteanX::Store::LDF::Plan::Triple'));
 		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
 		if ($p->does('Attean::API::Plan::Join')) {
 			$joins++;
@@ -45,6 +46,7 @@ sub allow_join_rotation {
 	return 0 unless ($quads == 1);
 	foreach my $p (@grandchildren) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
+		$quads++ if ($p->isa('AtteanX::Store::LDF::Plan::Triple'));
 		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
 	}
 	
@@ -64,6 +66,7 @@ sub coalesce_rotated_join {
 	my ($lhs, $rhs)	= @{ $p->children };
 	my @join_vars	= $self->_join_vars($lhs, $rhs);
 	if (scalar(@join_vars)) {
+#		$DB::single=1;
 		foreach my $q ($lhs, $rhs) {
 			if ($q->isa('Attean::Plan::Quad')) {
 				push(@quads, $q);
@@ -73,7 +76,7 @@ sub coalesce_rotated_join {
 				return $p; # bail-out
 			}
 		}
-		
+#		$DB::single=1;
 		my $count	= scalar(@quads);
 		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
 		if ($self->log->is_debug && $count >= 2) {
@@ -100,6 +103,7 @@ around 'join_plans' => sub {
 	foreach my $lhs (@{ $lplans }) {
 		$self->log->trace("BGP Constructing Left:\n" . $lhs->as_string);
 		foreach my $rhs (@{ $rplans }) {
+	#		$DB::single=1;
 			$self->log->trace("BGP Constructing Right:\n" . $rhs->as_string);
 			my @join_vars = $self->_join_vars($lhs, $rhs);
 
