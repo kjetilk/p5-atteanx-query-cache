@@ -76,7 +76,7 @@ sub coalesce_rotated_join {
 		
 		my $count	= scalar(@quads);
 		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
-		if ($self->log->is_debug && $count >= 3) {
+		if ($self->log->is_debug && $count >= 2) {
 		 	$self->log->debug("Coalescing $lhs and $rhs into BGP with $count quads");
 		 	$self->log->trace($c->as_string);
 		}
