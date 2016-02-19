@@ -128,9 +128,9 @@ END
 	foreach my $pattern (@patterns) {
 		isa_ok($pattern, 'Attean::TriplePattern');
 		ok($pattern->predicate->compare(iri('http://example.org/m/p')), 'Predicate is not <http://example.org/m/p>');  # cached, compare returns 0 when it is the same
-		ok($pattern->predicate->compare(iri('http://example.org/m/r')), 'Predicate is not <http://example.org/m/r>');
-
 	}
+   ok(! $patterns[0]->predicate->compare(iri('http://example.org/m/b')), 'Predicate in first pattern is <http://example.org/m/b>');
+   ok($patterns[1]->predicate->compare(iri('http://example.org/m/b')), 'Predicate in second pattern is not <http://example.org/m/b>');
 };
 
 done_testing();
