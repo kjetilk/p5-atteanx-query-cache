@@ -55,7 +55,7 @@ sub best_cost_improvement {
 	my $parser = AtteanX::Parser::SPARQL->new();
 	my ($algebra) = $parser->parse_list_from_bytes($self->query, $self->base_uri); # TODO: this is a bit of cargocult
 	# First, we find the cost of the plan with the current cache:
-	my $curplanner = AtteanX::QueryPlanner::Cache->new;
+	my $curplanner = AtteanX::QueryPlanner::Cache::LDF->new;
 	my $curplan = $curplanner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
 	$self->log->trace("Cost of incumbent plan: $curcost");

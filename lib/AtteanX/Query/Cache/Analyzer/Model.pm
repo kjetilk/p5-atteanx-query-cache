@@ -7,7 +7,7 @@ use Moo;
 use Types::Standard qw(ArrayRef Str);
 use namespace::clean;
 
-extends 'AtteanX::Model::SPARQLCache';
+extends 'AtteanX::Model::SPARQLCache::LDF';
 
 has 'try' => (is => 'rw', isa => Str);
 

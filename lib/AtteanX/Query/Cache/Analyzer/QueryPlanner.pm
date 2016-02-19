@@ -13,7 +13,7 @@ use Moo;
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
 
-extends 'AtteanX::QueryPlanner::Cache';
+extends 'AtteanX::QueryPlanner::Cache::LDF';
 
 around 'access_plans' => sub {
 	my $orig = shift;
