@@ -69,8 +69,16 @@ CONSTRUCT {
 }
 EOQ
 
+package TestLDFCreateStore {
+        use Moo;
+        with 'Test::Attean::Store::LDF::Role::CreateStore';
+};
+
+my $test = TestLDFCreateStore->new;
+my $ldfstore	= $test->create_store(triples => [triple(iri('http://example.org/foo'), iri('http://example.org/m/r'), literal('1'))]);
+
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, ldf_store => $ldfstore, cache => $cache);
 my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
 note 'Testing counts without actual caching';
 

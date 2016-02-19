@@ -51,6 +51,12 @@ package TestCreateStore {
 	with 'Test::Attean::Store::SPARQL::Role::CreateStore';
 };
 
+package TestLDFCreateStore {
+        use Moo;
+        with 'Test::Attean::Store::LDF::Role::CreateStore';
+};
+
+
 my $triples = [
 				   triple(iri('http://example.org/bar'), iri('http://example.org/c'), iri('http://example.org/foo')),
 				   triple(iri('http://example.org/foo'), iri('http://example.org/p'), iri('http://example.org/baz')),
@@ -62,7 +68,11 @@ my $triples = [
 
 my $test = TestCreateStore->new;
 my $store = $test->create_store(triples => $triples);
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, 
+my $testldf = TestLDFCreateStore->new;
+my $ldfstore = $testldf->create_store(triples => $triples);
+
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store,
+																		  ldf_store => $ldfstore,
 																		  cache => CHI->new( driver => 'Memory', 
 																									global => 1 ));
 
