@@ -56,34 +56,57 @@ my $redis1 = Redis->new( $redis_server->connect_info );
 
 is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 
+package TestLDFCreateStore {
+        use Moo;
+        with 'Test::Attean::Store::LDF::Role::CreateStore';
+};
 
-# my $p	= AtteanX::QueryPlanner::Cache->new;
-# isa_ok($p, 'Attean::QueryPlanner');
-# isa_ok($p, 'AtteanX::QueryPlanner::Cache');
-# does_ok($p, 'Attean::API::CostPlanner');
+my $test = TestLDFCreateStore->new;
+my $ldfstore	= $test->create_store(triples => [
+																 triple(iri('http://example.org/foo'), iri('http://example.org/m/r'), literal('1')),
+																 triple(iri('http://example.org/foo'), iri('http://example.org/m/p'), iri('http://example.org/bar')),
+																 triple(iri('http://example.org/m/a'), iri('http://example.org/m/p'), iri('http://example.org/bar')),
+																 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('2')),
+																 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('o')),
+																 triple(iri('http://example.org/bar'), iri('http://example.org/m/p'), literal('dahut')),
+																 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), literal('dahut')),
+																 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), iri('http://example.org/baz')),
+																 triple(iri('http://example.com/foo'), iri('http://example.org/m/p'), iri('http://example.org/foobar')),
+																 triple(iri('http://example.com/bar'), iri('http://example.org/m/p'), literal('dahut')),
+																 triple(iri('http://example.org/dahut'), iri('http://example.org/m/dahut'), literal('1')),
+																 triple(iri('http://example.org/dahut'), iri('http://example.org/m/dahut'), literal('Foobar')),
+																 triple(iri('http://example.org/foo'), iri('http://example.org/m/q'), literal('xyz')),
+																 triple(iri('http://example.com/foo'), iri('http://example.org/m/b'), iri('http://example.org/m/c')),
+																 triple(iri('http://example.com/dahut'), iri('http://example.org/m/b'), literal('2')),
+																 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/baz')),
+																 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/foobar')),
+																 triple(iri('http://example.org/m/a'), iri('http://example.org/m/c'), iri('http://example.org/foo')),
+																 triple(iri('http://example.org/m/a'), iri('http://example.org/m/p'), iri('http://example.org/m/o')),
+																]);
+
 
 
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache);
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache, ldf_store => $ldfstore);
 
 subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 
 	my $query = <<'END';
 SELECT * WHERE {
-  ?a <c> ?s . 
-  ?s <p> ?o . 
-  ?o <b> "2" .
+  ?a <http://example.org/m/c> ?s . 
+  ?s <http://example.org/m/p> ?o . 
+  ?o <http://example.org/m/b> "2" .
 }
 END
 	
-	$model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
-														  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
+	$model->cache->set('?v002 <http://example.org/m/p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
+														  '<http://example.com/foo>' => ['<http://example.org/m/b>', '<http://example.org/foobar>']});
 	my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
 	my @patterns = $analyzer->best_cost_improvement;
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
 		isa_ok($pattern, 'Attean::TriplePattern');
-		ok($pattern->predicate->compare(iri('p')), 'Predicate is not <p>');
+		ok($pattern->predicate->compare(iri('http://example.org/m/p')), 'Predicate is not <http://example.org/m/p>'); # cached, compare returns 0 when it is the same
 	}
 };
 
@@ -92,10 +115,10 @@ subtest '4-triple BGP where one pattern makes little impact' => sub {
 
 my $query = <<'END';
 SELECT * WHERE {
-	?s <r> "1" .
-   ?s <p> ?o .
-	?s <q> "xyz" . 
-	?o <b> <c> . 
+	?s <http://example.org/m/r> "1" .
+   ?s <http://example.org/m/p> ?o .
+	?s <http://example.org/m/q> "xyz" . 
+	?o <http://example.org/m/b> <http://example.org/m/c> . 
 }
 END
 
@@ -104,8 +127,8 @@ END
 	is(scalar @patterns, 2, '2 patterns to submit');
 	foreach my $pattern (@patterns) {
 		isa_ok($pattern, 'Attean::TriplePattern');
-		ok($pattern->predicate->compare(iri('p')), 'Predicate is not <p>');
-		ok($pattern->predicate->compare(iri('r')), 'Predicate is not <r>');
+		ok($pattern->predicate->compare(iri('http://example.org/m/p')), 'Predicate is not <http://example.org/m/p>');  # cached, compare returns 0 when it is the same
+		ok($pattern->predicate->compare(iri('http://example.org/m/r')), 'Predicate is not <http://example.org/m/r>');
 
 	}
 };
