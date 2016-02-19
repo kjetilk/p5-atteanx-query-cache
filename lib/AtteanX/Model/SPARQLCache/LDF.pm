@@ -66,14 +66,17 @@ around 'cost_for_plan' => sub {
 				} else {
 					$cost	= $lcost * $rcost;
 				}
-				$cost	*= 10 unless ($plan->children_are_variable_connected);
 			} elsif ($plan->isa('Attean::Plan::HashJoin')) {
 				my $lcost		= $planner->cost_for_plan($children[0], $self);
 				my $rcost		= $planner->cost_for_plan($children[1], $self);
 				$cost	= ($lcost + $rcost);
-				$cost	*= 100 unless ($plan->children_are_variable_connected);
 			}
 		}
+		unless ($plan->children_are_variable_connected) {
+			$cost	*= 10 if $plan->isa('Attean::Plan::NestedLoopJoin');
+			$cost	*= 100 if $plan->isa('Attean::Plan::HashJoin');
+		}
+
 		$cost *= $countldfs;
 	}
 
