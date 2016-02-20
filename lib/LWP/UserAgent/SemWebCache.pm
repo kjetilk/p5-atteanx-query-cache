@@ -3,7 +3,7 @@ package LWP::UserAgent::SemWebCache;
 use 5.006000;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_01';
+our $VERSION   = '0.001_02';
 
 use Moo;
 use Digest::MD4 qw(md4_base64);

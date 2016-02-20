@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_01';
+our $VERSION   = '0.001_02';
 
 use Moo;
 use AtteanX::Store::SPARQL::Plan::BGP;

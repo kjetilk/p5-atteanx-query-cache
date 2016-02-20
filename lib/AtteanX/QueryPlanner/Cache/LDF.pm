@@ -6,7 +6,7 @@ use warnings;
 package AtteanX::QueryPlanner::Cache::LDF;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_01';
+our $VERSION   = '0.001_02';
 
 use Moo;
 use AtteanX::Query::AccessPlan::LDF;
