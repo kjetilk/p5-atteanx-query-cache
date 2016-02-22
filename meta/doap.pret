@@ -7,7 +7,7 @@
 	:shortdesc            "=Experimental prefetching SPARQL query cacher";
 	:homepage             <https://metacpan.org/release/AtteanX-Query-Cache>;
 	:download-page        <https://metacpan.org/release/AtteanX-Query-Cache>;
-	:bug-database         <http://rt.cpan.org/Dist/Display.html?Queue=AtteanX-Query-Cache>;
+	:bug-database         <https://github.com/kjetilk/p5-atteanx-query-cache/issues>;
 #	:repository           [ a :GitRepository; :browse <https://github.com/kjetilk/p5-atteanx-query-cache> ];
 	:created              2015-06-11;
 	:license              <http://dev.perl.org/licenses/>;
