@@ -2,7 +2,6 @@ use v5.14;
 use autodie;
 use utf8;
 use Test::Modern;
-use Test::Exception;
 
 use CHI;
 
