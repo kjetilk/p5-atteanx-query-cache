@@ -1,18 +1,28 @@
 # This file contains general metadata about the project.
 
 @prefix : <http://usefulinc.com/ns/doap#>.
+@prefix dc:   <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#>.
 
 `AtteanX-Query-Cache`
 	:programming-language "Perl" ;
-	:shortdesc            "=Experimental prefetching SPARQL query cacher";
+	:shortdesc            "Experimental prefetching SPARQL query cacher";
+        dc:identifier         "AtteanX::Query::Cache"^^<http://ontologi.es/doap-deps#CpanId> ;    
 	:homepage             <https://metacpan.org/release/AtteanX-Query-Cache>;
 	:download-page        <https://metacpan.org/release/AtteanX-Query-Cache>;
 	:bug-database         <https://github.com/kjetilk/p5-atteanx-query-cache/issues>;
-#	:repository           [ a :GitRepository; :browse <https://github.com/kjetilk/p5-atteanx-query-cache> ];
+	:repository           [ a :GitRepository; 
+                                :browse <https://github.com/kjetilk/p5-atteanx-query-cache> ;
+                                prov:has_provenance <http://git2prov.org/git2prov?giturl=https%3A%2F%2Fgithub.com%2Fkjetilk%2Fp5-atteanx-store-sparql%2F&serialization=PROV-O#>
+                              ];
 	:created              2015-06-11;
 	:license              <http://dev.perl.org/licenses/>;
+        :category             <http://dbpedia.org/resource/Category:Semantic_Web> , 
+                              <http://dbpedia.org/resource/Category:Database_caching> ;
 	:maintainer           cpan:KJETILK;
-	:developer            cpan:KJETILK.
+        :developer            cpan:KJETILK;
+        :helper               <http://kasei.us/about/foaf.xrdf#greg>.
+
 
 <http://dev.perl.org/licenses/>
 	dc:title  "the same terms as the perl 5 programming language system itself".
