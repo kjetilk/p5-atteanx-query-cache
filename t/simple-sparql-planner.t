@@ -270,7 +270,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 5, 'Got 5 plans');
+		is(scalar @plans, 4, 'Got 4 plans');
 		my $plan = shift @plans;
 		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'The winning plan should be BGP');
 		is(scalar @{$plan->children}, 3, 'with three children');
