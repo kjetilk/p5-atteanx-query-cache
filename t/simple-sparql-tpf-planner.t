@@ -277,12 +277,13 @@ my $test = TestLDFCreateStore->new;
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
-		is(scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP'), 1, 'Just one BGP');
+		is(scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP'), 1, 'Just one BGP') or diag("This plan:\n" . $plan->as_string);;
+		is(scalar $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple'), 1, 'Just one TPF') or diag("This plan:\n" . $plan->as_string);;
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
-		isa_ok($c1plans[0], 'Attean::Plan::NestedLoopJoin', 'specifically NestedLoop Join') or diag($c1plans[0]->as_string);
-		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP') or diag($c1plans[1]->as_string);
-		is(scalar @{$c1plans[1]->children}, 2, '...with two quads') or diag($c1plans[1]->as_string);
+		isa_ok($c1plans[0], 'Attean::Plan::NestedLoopJoin', 'specifically NestedLoop Join') or diag("This child plan:\n" . $c1plans[0]->as_string);
+		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP') or diag("This child plan:\n" . $c1plans[1]->as_string);
+		is(scalar @{$c1plans[1]->children}, 2, '...with two quads') or diag("This child plan:\n" . $c1plans[1]->as_string);
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
