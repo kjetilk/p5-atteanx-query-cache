@@ -186,7 +186,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 1, 'Got just 1 plans');
+		is(scalar @plans, 2, 'Got just 2 plans');
 		foreach my $plan (@plans) {
 #			warn $plan->as_string;
 			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
@@ -203,7 +203,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache none cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$w, $z]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 1, 'Got 1 plan');
+		is(scalar @plans, 2, 'Got 2 plans');
 		foreach my $plan (@plans) {
 #			warn $plan->as_string;
 			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
@@ -220,8 +220,8 @@ does_ok($p, 'Attean::API::CostPlanner');
 	subtest '2-triple BGP with join variable with cache one cached' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 5, 'Got 5 plans');
-		
+		cmp_ok(scalar @plans, '>=', 2, 'Got more than 2 plans');
+
 		# The first two plans should be the "best", containing a HashJoin over
 		# a Table and a SPARQLBGP. The order or the join operands is irrelevant,
 		# because we don't know enough about cardinality of SPARQLBGP plans to
@@ -252,9 +252,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
-		does_ok($plan, 'Attean::API::Plan::Join');
+		does_ok($plan, 'Attean::API::Plan::Join') or diag('All plans: ' . join("\n", map {$_->as_string} @plans));
 		my @c1plans = sort @{$plan->children};
-		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
+		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join') or diag('All plans: ' . join("\n", map {$_->as_string} @plans));
 		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
 		my @c2plans = sort @{$c1plans[0]->children};
@@ -265,6 +265,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		isa_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
 		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
 	};
+
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
