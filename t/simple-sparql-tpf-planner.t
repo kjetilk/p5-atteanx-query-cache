@@ -204,7 +204,7 @@ my $test = TestLDFCreateStore->new;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 2, 'Got just 2 plans');
 		foreach my $plan (@plans) {
-			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans') || diag("Found plan:\n".$plan->as_string);
+			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans') or diag("Found plan:\n".$plan->as_string);
 			ok($plan->distinct, 'Plans should be distinct');
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
@@ -246,11 +246,10 @@ my $test = TestLDFCreateStore->new;
 		# plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 5, 'Got 5 plans');
-		# The first four plans should be the "best", containing a HashJoin over
-		# a Table and a LDF.
-		foreach my $plan (@plans[0..3]) {
-			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
+		is(scalar @plans, 4, 'Got 4 plans');
+		# Plans should be a HashJoin over a Table and a LDF.
+		foreach my $plan (@plans) {
+			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins') or diag("Found plan:\n".$plan->as_string);
 			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
 			my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
@@ -282,8 +281,8 @@ my $test = TestLDFCreateStore->new;
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
 		isa_ok($c1plans[0], 'Attean::Plan::NestedLoopJoin', 'specifically NestedLoop Join') or diag($c1plans[0]->as_string);
-		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
-		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
+		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP') or diag($c1plans[1]->as_string);
+		is(scalar @{$c1plans[1]->children}, 2, '...with two quads') or diag($c1plans[1]->as_string);
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
@@ -292,9 +291,6 @@ my $test = TestLDFCreateStore->new;
 		isa_ok($c2plans[1], 'AtteanX::Store::LDF::Plan::Triple');
 		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
 	};
-
-done_testing;
-exit 0;
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
