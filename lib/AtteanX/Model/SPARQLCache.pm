@@ -55,14 +55,14 @@ sub cost_for_plan {
 		if ($plan->isa('Attean::Plan::NestedLoopJoin')) {
 			my $lcost		= $planner->cost_for_plan($children[0], $self);
 			my $rcost		= $planner->cost_for_plan($children[1], $self);
-			unless (defined($lcost)) {
-				$lcost = 5;
-				die "A\n" . $children[0]->as_string;
-			}
-			unless (defined($rcost)) {
-				$rcost = 5;
-				die "B\n" . $children[1]->as_string;
-			}
+			# unless (defined($lcost)) {
+			# 	$lcost = 5;
+			# 	die "A\n" . $children[0]->as_string;
+			# }
+			# unless (defined($rcost)) {
+			# 	$rcost = 5;
+			# 	die "B\n" . $children[1]->as_string;
+			# }
 
 			if ($lcost == 0) {
 				$cost	= $rcost;
@@ -74,27 +74,27 @@ sub cost_for_plan {
 			$cost	*= 10 unless ($plan->children_are_variable_connected);
 		} elsif ($plan->isa('Attean::Plan::HashJoin')) {
 			my $joined		= $plan->children_are_variable_connected;
-			if (($children[1]->isa('Attean::Plan::HashJoin'))) {
-			#	$DB::single=1;
-				my $tmp = 0;
-				foreach my $gc (@{$children[1]->children}) {
-					use Scalar::Util qw(blessed);
-					if (blessed($gc) && $gc->isa('Attean::Plan::Table')) {
-						$tmp++;
-					}
-				}
-				$DB::single = 1 if $tmp >= 2;
-			}
+			# if (($children[1]->isa('Attean::Plan::HashJoin'))) {
+			# #	$DB::single=1;
+			# 	my $tmp = 0;
+			# 	foreach my $gc (@{$children[1]->children}) {
+			# 		use Scalar::Util qw(blessed);
+			# 		if (blessed($gc) && $gc->isa('Attean::Plan::Table')) {
+			# 			$tmp++;
+			# 		}
+			# 	}
+			# 	$DB::single = 1 if $tmp >= 2;
+			# }
 			my $lcost		= $planner->cost_for_plan($children[0], $self);
 			my $rcost		= $planner->cost_for_plan($children[1], $self);
-			unless (defined($lcost)) {
-				$lcost = 5;
-				die "C\n" .  $children[0]->as_string;
-			}
-			unless (defined($rcost)) {
-				$rcost = 5;
-				die "D\n" . $children[1]->as_string;
-			}
+			# unless (defined($lcost)) {
+			# 	$lcost = 5;
+			# 	die "C\n" .  $children[0]->as_string;
+			# }
+			# unless (defined($rcost)) {
+			# 	$rcost = 5;
+			# 	die "D\n" . $children[1]->as_string;
+			# }
 
 			$cost	= ($lcost + $rcost);
 			$cost	*= 100 unless ($plan->children_are_variable_connected);
