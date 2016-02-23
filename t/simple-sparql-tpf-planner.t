@@ -233,12 +233,12 @@ my $test = TestLDFCreateStore->new;
 		foreach my $plan (@plans) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'The rest are joins');
 		}
-		foreach my $plan (@plans[0..1]) {
-			foreach my $cplan (@{$plan->children}) {
-				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
-				isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple');
-			}
-		}
+		# foreach my $plan (@plans[0..1]) {
+		# 	foreach my $cplan (@{$plan->children}) {
+		# 		does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
+		# 		isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple');
+		# 	}
+		# }
 	};
 
 

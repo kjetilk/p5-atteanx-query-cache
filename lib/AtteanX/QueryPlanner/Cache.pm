@@ -15,8 +15,8 @@ use Attean::RDF qw(triplepattern variable iri);
 use Carp;
 use AtteanX::Store::SPARQL::Plan::BGP;
 
-extends 'Attean::QueryPlanner';
-with 'Attean::API::NaiveJoinPlanner', 'Attean::API::SimpleCostPlanner';
+extends 'Attean::IDPQueryPlanner';
+
 
 with 'AtteanX::API::JoinRotatingPlanner', 'MooX::Log::Any';
 
