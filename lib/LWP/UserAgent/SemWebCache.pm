@@ -22,7 +22,9 @@ has key => (
 sub _build_key { return md4_base64(shift->request_uri->canonical->as_string) }
 
 
-with 'LWP::UserAgent::Role::CHICaching', 'LWP::UserAgent::Role::CHICaching::VaryNotAsterisk';
+with 'LWP::UserAgent::Role::CHICaching',
+     'LWP::UserAgent::Role::CHICaching::VaryNotAsterisk'
+     'LWP::UserAgent::Role::CHICaching::SimpleMungeResponse';
 
 1;
 
