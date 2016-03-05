@@ -23,4 +23,6 @@ my $ua = LWP::UserAgent::SemWebCache->new(cache => $cache);
 
 my $res1 = $ua->get("http://localhost:3000/?query=DAHUT");
 
+ok($res1);
+
 done_testing;
