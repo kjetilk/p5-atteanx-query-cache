@@ -40,7 +40,7 @@ use AtteanX::Query::Cache::Retriever;
 use AtteanX::Model::SPARQLCache;
 #use Carp::Always;
 use Log::Any::Adapter;
-Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
+Log::Any::Adapter->set($ENV{LOG_ADAPTER} ) if ($ENV{LOG_ADAPTER});
 
 
 package TestCreateStore {

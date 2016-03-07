@@ -43,7 +43,7 @@ use AtteanX::Query::Cache::Analyzer;
 use Data::Dumper;
 use AtteanX::Model::SPARQLCache;
 use Log::Any::Adapter;
-Log::Any::Adapter->set($ENV{LOG_ADAPTER} || 'Stderr') if ($ENV{TEST_VERBOSE});
+Log::Any::Adapter->set($ENV{LOG_ADAPTER} ) if ($ENV{LOG_ADAPTER});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
