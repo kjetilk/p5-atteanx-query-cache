@@ -30,7 +30,7 @@ around 'cost_for_plan' => sub {
 		my $logcost = $cost || 'not defined';
 		$self->log->debug('Cost for original plan \'' . ref($plan) . "' was $logcost.");
 	}
-	if ($plan->isa('AtteanX::Store::LDF::Plan::Triple')) {
+	if ($plan->isa('AtteanX::Plan::LDF::Triple')) {
 		$cost = $self->ldf_store->cost_for_plan($plan);
 		return $cost;
 	}
@@ -41,7 +41,7 @@ around 'cost_for_plan' => sub {
 		return $cost;
 	} 
 	# This is where the plans that needs to be balanced against LDFs go
-	if ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+	if ($plan->isa('AtteanX::Plan::SPARQLBGP')) {
 		if ($cost <= 1000 && (scalar(@{ $plan->children }) == 1)) {
 			$self->log->trace("Set cost for single BGP SPARQL plan");
 			$cost = 1001;
@@ -52,7 +52,7 @@ around 'cost_for_plan' => sub {
 	}
 	if ($plan->does('Attean::API::Plan::Join')) {
 		# Then, penalize the plan by the number of LDFs
-		my $countldfs = scalar $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+		my $countldfs = scalar $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 		return unless ($countldfs);
 		unless ($cost) {
 			my @children	= @{ $plan->children };
@@ -86,10 +86,10 @@ around 'cost_for_plan' => sub {
 	my $shared = 0;
 	$plan->walk(prefix => sub {
 						my $node = shift;
-						if ($node->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+						if ($node->isa('AtteanX::Plan::SPARQLBGP')) {
 							map { $bgpvars{$_} = 1 } @{$node->in_scope_variables};
 						}
-						elsif ($node->isa('AtteanX::Store::LDF::Plan::Triple')) {
+						elsif ($node->isa('AtteanX::Plan::LDF::Triple')) {
 							map { $ldfvars{$_} = 1 } @{$node->in_scope_variables};
 							# TODO: A single loop should be sufficient
 						}

@@ -32,7 +32,7 @@ sub cost_for_plan {
  		return 2;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
  		return 100000;
-	} elsif ($plan->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+	} elsif ($plan->isa('AtteanX::Plan::SPARQLBGP')) {
 		# BGPs should have a cost proportional to the number of triple patterns,
 		# but be much more costly if they contain a cartesian product.
 		$self->log->trace('Estimating cost for single BGP');
@@ -42,7 +42,7 @@ sub cost_for_plan {
 			return 200 * scalar(@{ $plan->children });
 		}
  	} elsif ($plan->does('Attean::API::Plan::Join')) {
-		my @bgps = $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
+		my @bgps = $plan->subpatterns_of_type('AtteanX::Plan::SPARQLBGP');
 		my $countbgps = scalar(@bgps);
 		return unless $countbgps;
 		# Now, we have SPARQLBGPs as subplans, which is usually not wanted

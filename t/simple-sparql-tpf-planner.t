@@ -134,12 +134,12 @@ my $test = TestLDFCreateStore->new;
 		is(scalar @plans, 2, 'Two plans');
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'AtteanX::Store::LDF::Plan::Triple');
+		isa_ok($plan, 'AtteanX::Plan::LDF::Triple');
 		is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
 		is($model->cost_for_plan($plan), 583, 'Cost for plan is 583');
 		$plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($plan, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plan->children}, 1, '1-triple BGP child');
 		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
@@ -161,7 +161,7 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
 		isa_ok($c1plans[0], 'Attean::Plan::Table');
-		isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP') or diag("No SPARQLBGP child, plan is:\n" . $plan->as_string);
+		isa_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP') or diag("No SPARQLBGP child, plan is:\n" . $plan->as_string);
 		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
 		foreach my $plan (@{$c1plans[1]->children}) {
 			isa_ok($plan, 'Attean::Plan::Quad');
@@ -189,9 +189,9 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'AtteanX::Store::LDF::Plan::Triple');
+		isa_ok($plans[1], 'AtteanX::Plan::LDF::Triple');
 		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good plan');
-		isa_ok($plans[2], 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($plans[2], 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plans[2]->children}, 1, '1-triple BGP child');
 		like($plans[2]->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
@@ -222,13 +222,13 @@ my $test = TestLDFCreateStore->new;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = shift @plans;
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP') or diag('All plans: ' . join("\n", map {$_->as_string} @plans));
+		isa_ok($plan, 'AtteanX::Plan::SPARQLBGP') or diag('All plans: ' . join("\n", map {$_->as_string} @plans));
 		like($plan->as_string, qr/^- SPARQLBGP/, 'SPARQL BGP serialisation');
 		is(scalar (@{$plan->children}), 2, 'With two children');
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 			isa_ok($cplan, 'Attean::Plan::Quad', 'Child is a Quad');
-			ok(! $cplan->isa('AtteanX::Store::LDF::Plan::Triple'), 'But not an LDF triple');
+			ok(! $cplan->isa('AtteanX::Plan::LDF::Triple'), 'But not an LDF triple');
 		}
 		foreach my $plan (@plans) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'The rest are joins');
@@ -236,7 +236,7 @@ my $test = TestLDFCreateStore->new;
 		foreach my $plan (@plans[0..1]) {
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
-				isa_ok($cplan, 'AtteanX::Store::LDF::Plan::Triple');
+				isa_ok($cplan, 'AtteanX::Plan::LDF::Triple');
 			}
 		}
 	};
@@ -253,7 +253,7 @@ my $test = TestLDFCreateStore->new;
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
 			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
-			my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+			my @ldfs	= $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 			is(scalar(@ldfs), 1, 'First 2 plans contain 1 table sub-plan');
 		}
 
@@ -267,7 +267,7 @@ my $test = TestLDFCreateStore->new;
 		
 		my ($table,$ldfplan)	= @children;
 		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
-		isa_ok($ldfplan, 'AtteanX::Store::LDF::Plan::Triple', 'Then on LDF triple');
+		isa_ok($ldfplan, 'AtteanX::Plan::LDF::Triple', 'Then on LDF triple');
 		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/q>, <http://example.org/m/a> }', 'Child plan OK');
 	};
 
@@ -278,18 +278,18 @@ my $test = TestLDFCreateStore->new;
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
-		is(scalar $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP'), 1, 'Just one BGP');
+		is(scalar $plan->subpatterns_of_type('AtteanX::Plan::SPARQLBGP'), 1, 'Just one BGP');
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
 		isa_ok($c1plans[0], 'Attean::Plan::NestedLoopJoin', 'specifically NestedLoop Join') or diag($c1plans[0]->as_string);
-		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		does_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		isa_ok($c2plans[1], 'AtteanX::Store::LDF::Plan::Triple');
+		isa_ok($c2plans[1], 'AtteanX::Plan::LDF::Triple');
 		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
 	};
 
@@ -312,7 +312,7 @@ exit 0;
 		
 		my ($join, $ldfplan1)	= @children;
 		isa_ok($join, 'Attean::Plan::HashJoin');
-		isa_ok($ldfplan1, 'AtteanX::Store::LDF::Plan::Triple');
+		isa_ok($ldfplan1, 'AtteanX::Plan::LDF::Triple');
 		like($ldfplan1->as_string, qr(^- LDFTriple \{ \?o, <http://example\.org/m/b>, "2" }), 'First LDF ok');
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
@@ -321,7 +321,7 @@ exit 0;
 		}
 		my ($table, $ldfplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Table');
-		isa_ok($ldfplan2, 'AtteanX::Store::LDF::Plan::Triple');
+		isa_ok($ldfplan2, 'AtteanX::Plan::LDF::Triple');
 		like($ldfplan2->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
@@ -334,7 +334,7 @@ exit 0;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
-		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Store::LDF::Plan::Triple');
+		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 		is(scalar @ldfs, 1, 'Should be only one LDF in the plan');
 		my $ldf = shift @ldfs;
 		like($ldf->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');

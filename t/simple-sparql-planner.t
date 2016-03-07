@@ -90,7 +90,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($plan, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plan->children}, 1, '1-triple BGP child');
 		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
@@ -104,7 +104,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
 		isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
-		isa_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		isa_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
 		foreach my $plan (@{$c1plans[1]->children}) {
 			isa_ok($plan, 'Attean::Plan::Quad', 'All children are quads');
@@ -147,7 +147,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		ok($testrows[2]->value('o')->equals(iri('http://example.org/foobar')), 'Third triple object IRI is OK'); 
 
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($plans[1], 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
 		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 	};
@@ -177,7 +177,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
 
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($plans[1], 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plans[1]->children}, 1, '1-triple BGP child');
 		like($plans[1]->as_string, qr|SPARQLBGP.*?Quad \{ <http://example.org/foo>, <dahut>, \?name, <http://test.invalid/graph> }|s, 'Good plan');
 	};
@@ -206,7 +206,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		is(scalar @plans, 1, 'Got 1 plan');
 		foreach my $plan (@plans) {
 #			warn $plan->as_string;
-			isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Plans are SPARQLBGP');
+			isa_ok($plan, 'AtteanX::Plan::SPARQLBGP', 'Plans are SPARQLBGP');
 		}
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '2-triple BGP');
@@ -242,7 +242,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		
 		my ($table, $bgpplan)	= @children;
 		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
-		isa_ok($bgpplan, 'AtteanX::Store::SPARQL::Plan::BGP', 'Then on SPARQL BGP');
+		isa_ok($bgpplan, 'AtteanX::Plan::SPARQLBGP', 'Then on SPARQL BGP');
 		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
 		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
 	};
@@ -255,14 +255,14 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
-		does_ok($c1plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second child when sorted is a BGP');
+		does_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 2, '...with two quads');
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		isa_ok($c2plans[1], 'AtteanX::Store::SPARQL::Plan::BGP', 'Second grandchild when sorted is a BGP');
+		isa_ok($c2plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second grandchild when sorted is a BGP');
 		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
 	};
 
@@ -271,7 +271,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = shift @plans;
-		isa_ok($plan, 'AtteanX::Store::SPARQL::Plan::BGP', 'The winning plan should be BGP');
+		isa_ok($plan, 'AtteanX::Plan::SPARQLBGP', 'The winning plan should be BGP');
 		is(scalar @{$plan->children}, 3, 'with three children');
 		$plan = shift @plans;
 		isa_ok($plan, 'Attean::Plan::HashJoin', 'The next plan should be a join');
@@ -285,7 +285,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @triples;
 		my ($join, $bgpplan1)	= @children;
 		isa_ok($join, 'Attean::Plan::HashJoin');
-		isa_ok($bgpplan1, 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($bgpplan1, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar(@{ $bgpplan1->children }), 1);
 		push(@triples, @{ $bgpplan1->children });
 		
@@ -296,7 +296,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		}
 		my ($table, $bgpplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Table');
-		isa_ok($bgpplan2, 'AtteanX::Store::SPARQL::Plan::BGP');
+		isa_ok($bgpplan2, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar(@{ $bgpplan2->children }), 1);
 		push(@triples, @{ $bgpplan2->children });
 		my @strings	= sort map { $_->as_string } @triples;
@@ -316,7 +316,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
-		my @bgps	= $plan->subpatterns_of_type('AtteanX::Store::SPARQL::Plan::BGP');
+		my @bgps	= $plan->subpatterns_of_type('AtteanX::Plan::SPARQLBGP');
 		is(scalar @bgps, 1, 'Should be only one BGP in the plan');
 		is(scalar @{ $bgps[0]->children }, 1, 'And that should just have one child');
 		isa_ok(${ $bgps[0]->children }[0], 'Attean::Plan::Quad', 'That has a Quad child');

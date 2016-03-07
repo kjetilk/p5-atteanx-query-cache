@@ -15,8 +15,8 @@ extends 'AtteanX::QueryPlanner::Cache';
 with 'AtteanX::Query::AccessPlan::LDF';
 
 # Only allow rotation on joins who have one child matching: - Either a
-# Attean::Plan::Quad, AtteanX::Store::SPARQL::Plan::BGP, or
-# AtteanX::Store::LDF::Plan::Triple and the other child being a join
+# Attean::Plan::Quad, AtteanX::Plan::SPARQLBGP, or
+# AtteanX::Plan::LDF::Triple and the other child being a join
 
 sub allow_join_rotation {
 	my $self	= shift;
@@ -27,8 +27,8 @@ sub allow_join_rotation {
  	$self->log->trace("Seeking to rotate:\n" . $join->as_string);
 	foreach my $p (@{ $join->children }) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
-		$quads++ if ($p->isa('AtteanX::Store::LDF::Plan::Triple'));
-		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+		$quads++ if ($p->isa('AtteanX::Plan::LDF::Triple'));
+		$quads++ if ($p->isa('AtteanX::Plan::SPARQLBGP'));
 		if ($p->does('Attean::API::Plan::Join')) {
 			$joins++;
 			push(@grandchildren, @{ $p->children });
@@ -38,8 +38,8 @@ sub allow_join_rotation {
 	return 0 unless ($quads == 1);
 	foreach my $p (@grandchildren) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
-		$quads++ if ($p->isa('AtteanX::Store::LDF::Plan::Triple'));
-		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+		$quads++ if ($p->isa('AtteanX::Plan::LDF::Triple'));
+		$quads++ if ($p->isa('AtteanX::Plan::SPARQLBGP'));
 	}
 	
 	if ($quads >= 2) {

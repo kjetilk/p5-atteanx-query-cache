@@ -13,7 +13,7 @@ use Moo;
 use Types::Standard qw(InstanceOf);
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
-use AtteanX::Store::SPARQL::Plan::BGP;
+use AtteanX::Plan::SPARQLBGP;
 
 extends 'Attean::QueryPlanner';
 with 'Attean::API::NaiveJoinPlanner', 'Attean::API::SimpleCostPlanner';
@@ -23,7 +23,7 @@ with 'AtteanX::API::JoinRotatingPlanner', 'MooX::Log::Any';
 with 'AtteanX::Query::AccessPlan::Cache';
 
 # Only allow rotation on joins who have one child matching: - Either a
-# Attean::Plan::Quad or AtteanX::Store::SPARQL::Plan::BGP and the
+# Attean::Plan::Quad or AtteanX::Plan::SPARQLBGP and the
 # other child being a join
 
 sub allow_join_rotation {
@@ -35,7 +35,7 @@ sub allow_join_rotation {
  	$self->log->trace("Seeking to rotate:\n" . $join->as_string);
 	foreach my $p (@{ $join->children }) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
-		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+		$quads++ if ($p->isa('AtteanX::Plan::SPARQLBGP'));
 		if ($p->does('Attean::API::Plan::Join')) {
 			$joins++;
 			push(@grandchildren, @{ $p->children });
@@ -45,7 +45,7 @@ sub allow_join_rotation {
 	return 0 unless ($quads == 1);
 	foreach my $p (@grandchildren) {
 		$quads++ if ($p->isa('Attean::Plan::Quad'));
-		$quads++ if ($p->isa('AtteanX::Store::SPARQL::Plan::BGP'));
+		$quads++ if ($p->isa('AtteanX::Plan::SPARQLBGP'));
 	}
 	
 	if ($quads >= 2) {
@@ -67,14 +67,14 @@ sub coalesce_rotated_join {
 		foreach my $q ($lhs, $rhs) {
 			if ($q->isa('Attean::Plan::Quad')) {
 				push(@quads, $q);
-			} elsif ($q->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+			} elsif ($q->isa('AtteanX::Plan::SPARQLBGP')) {
 				push(@quads, @{ $q->children });
 			} else {
 				return $p; # bail-out
 			}
 		}
 		my $count	= scalar(@quads);
-		my $c	= AtteanX::Store::SPARQL::Plan::BGP->new(children => \@quads, distinct => 0);
+		my $c	= AtteanX::Plan::SPARQLBGP->new(children => \@quads, distinct => 0);
 		if ($self->log->is_debug && $count >= 2) {
 		 	$self->log->debug("Coalescing $lhs and $rhs into BGP with $count quads");
 		 	$self->log->trace($c->as_string);
@@ -110,10 +110,10 @@ around 'join_plans' => sub {
 				} else {
 					return Attean::Plan::NestedLoopJoin->new(children => [$lhs, $rhs], join_variables => \@join_vars, distinct => 0, ordered => []);
 				}
-			} elsif ($rhs->isa('AtteanX::Store::SPARQL::Plan::BGP') &&
-					 $lhs->isa('AtteanX::Store::SPARQL::Plan::BGP')) {
+			} elsif ($rhs->isa('AtteanX::Plan::SPARQLBGP') &&
+					 $lhs->isa('AtteanX::Plan::SPARQLBGP')) {
 				if (scalar(@join_vars)) {
-					push(@plans, AtteanX::Store::SPARQL::Plan::BGP->new(children => [@{ $lhs->children || []} , @{ $rhs->children || []} ], distinct => 0, ordered => []));
+					push(@plans, AtteanX::Plan::SPARQLBGP->new(children => [@{ $lhs->children || []} , @{ $rhs->children || []} ], distinct => 0, ordered => []));
 				} else {
 					push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$lhs], [$rhs], @restargs));
 				}
@@ -139,7 +139,7 @@ around 'access_plans' => sub {
 	my @plans			= $orig->($self, $model, $active_graphs, $pattern, @_);
 	my %seen;
 	if ($pattern->does('Attean::API::TriplePattern')) {
-		my $sp	= AtteanX::Store::SPARQL::Plan::BGP->new(children => [shift(@plans)], distinct => 0, ordered => []);
+		my $sp	= AtteanX::Plan::SPARQLBGP->new(children => [shift(@plans)], distinct => 0, ordered => []);
 		push(@plans, $sp);
 	}
 	return @plans;
