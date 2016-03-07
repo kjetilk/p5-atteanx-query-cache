@@ -8,3 +8,6 @@
 	issued  2016-02-20;
 	label   "Current test suite passes alpha release".
 
+`AtteanX-Query-Cache 0.001_03 cpan:KJETILK`
+	issued  2016-03-07;
+	label   "Smaller fixes".
