@@ -7,7 +7,7 @@ package AtteanX::Query::Cache::Analyzer::QueryPlanner;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_02';
+our $VERSION   = '0.001_03';
 
 use Moo;
 use Attean::RDF qw(triplepattern variable iri);
