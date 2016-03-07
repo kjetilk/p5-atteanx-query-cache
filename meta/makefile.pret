@@ -17,7 +17,7 @@
         :runtime-requirement    [ :on "Attean 0.011"^^:CpanId ];
         :runtime-requirement    [ :on "Digest::MD4"^^:CpanId ];
         :runtime-requirement    [ :on "Class::Method::Modifiers"^^:CpanId ];
-        :runtime-requirement    [ :on "LWP::UserAgent::CHICaching"^^:CpanId ];
+        :runtime-requirement    [ :on "LWP::UserAgent::CHICaching 0.04"^^:CpanId ];
         :runtime-requirement    [ :on "Types::Standard 0.008"^^:CpanId ];
         :runtime-requirement    [ :on "MooX::Log::Any"^^:CpanId ];
         :runtime-requirement    [ :on "List::MoreUtils"^^:CpanId ];
