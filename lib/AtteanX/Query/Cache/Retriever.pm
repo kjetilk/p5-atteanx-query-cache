@@ -8,7 +8,6 @@ our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001_03';
 
 use Moo;
-use AtteanX::Plan::SPARQLBGP;
 use Carp qw(croak);
 use Attean::RDF;
 use Types::Standard qw(InstanceOf);
@@ -32,7 +31,7 @@ sub fetch {
 		croak "Only triple patterns with one or two variables are supported, got $key";
 	}
 	my $sparql = 'SELECT ' . join(' ', map { $_->ntriples_string } @vars) . 
-	  " WHERE {\n\t" . $triple->as_sparql . '. }';
+	  " WHERE {\n\t" . $triple->as_sparql . '. }'; # TODO: Use LDFs for this
 	$self->log->debug("Running SPARQL query\n$sparql");
 	my $iter = $self->model->get_sparql($sparql);
 
