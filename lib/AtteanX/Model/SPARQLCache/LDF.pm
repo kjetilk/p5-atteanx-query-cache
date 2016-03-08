@@ -17,6 +17,10 @@ has 'ldf_store' => (is => 'ro',
 						  isa => InstanceOf['AtteanX::Store::LDF'],
 						  required => 1);
 
+has 'pubsub' => (is => 'ro',
+					  isa => InstanceOf['Redis'],
+					  required => 1
+					 );
 
 around 'cost_for_plan' => sub {
 	my $orig = shift;
@@ -77,7 +81,7 @@ around 'cost_for_plan' => sub {
 			$cost	*= 100 if $plan->isa('Attean::Plan::HashJoin');
 		}
 
-		$cost *= $countldfs;
+		$cost *= $countldfs; # TODO: This is assuming that it is better to join remotely
 	}
 
 	# Now, penalize plan if any SPARQLBGP has a common variable with a LDFTriple
