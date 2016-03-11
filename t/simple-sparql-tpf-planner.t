@@ -45,6 +45,10 @@ use AtteanX::Store::SPARQL;
 use AtteanX::Store::LDF;
 use AtteanX::Model::SPARQLCache::LDF;
 use Log::Any::Adapter;
+use Redis;
+use Test::RedisServer;
+
+
 Log::Any::Adapter->set($ENV{LOG_ADAPTER}) if ($ENV{LOG_ADAPTER});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
@@ -53,6 +57,11 @@ my $p	= AtteanX::QueryPlanner::Cache::LDF->new;
 isa_ok($p, 'Attean::QueryPlanner');
 isa_ok($p, 'AtteanX::QueryPlanner::Cache::LDF');
 does_ok($p, 'Attean::API::CostPlanner');
+
+my $redis_server = Test::RedisServer->new;
+
+my $redis1 = Redis->new( $redis_server->connect_info );
+is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 
 package TestLDFCreateStore {
         use Moo;
@@ -103,7 +112,8 @@ my $test = TestLDFCreateStore->new;
 	isa_ok($ldfstore, 'AtteanX::Store::LDF');
 	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
 																		  ldf_store => $ldfstore,
-																		  cache => $cache );
+																		  cache => $cache,
+																		  pubsub => $redis1);
 	isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
 	isa_ok($model, 'AtteanX::Model::SPARQLCache');
 	isa_ok($model, 'AtteanX::Model::SPARQL');
@@ -135,6 +145,7 @@ my $test = TestLDFCreateStore->new;
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'AtteanX::Plan::LDF::Triple');
+		isa_ok($plan, 'AtteanX::Plan::LDF::Triple::EnterCache');
 		is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
 		is($model->cost_for_plan($plan), 583, 'Cost for plan is 583');
 		$plan = shift @plans;
@@ -144,7 +155,6 @@ my $test = TestLDFCreateStore->new;
 		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <http://example.org/m/p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
 		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
-
 
 	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
 		# plan skip_all => 'it works';
@@ -189,7 +199,7 @@ my $test = TestLDFCreateStore->new;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Table');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plans[1], 'AtteanX::Plan::LDF::Triple');
+		isa_ok($plans[1], 'AtteanX::Plan::LDF::Triple::EnterCache');
 		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good plan');
 		isa_ok($plans[2], 'AtteanX::Plan::SPARQLBGP');
 		is(scalar @{$plans[2]->children}, 1, '1-triple BGP child');
@@ -236,7 +246,7 @@ my $test = TestLDFCreateStore->new;
 		foreach my $plan (@plans[0..1]) {
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP is a plan');
-				isa_ok($cplan, 'AtteanX::Plan::LDF::Triple');
+				isa_ok($cplan, 'AtteanX::Plan::LDF::Triple::EnterCache');
 			}
 		}
 	};
@@ -267,7 +277,7 @@ my $test = TestLDFCreateStore->new;
 		
 		my ($table,$ldfplan)	= @children;
 		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
-		isa_ok($ldfplan, 'AtteanX::Plan::LDF::Triple', 'Then on LDF triple');
+		isa_ok($ldfplan, 'AtteanX::Plan::LDF::Triple::EnterCache', 'Then on LDF triple');
 		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/q>, <http://example.org/m/a> }', 'Child plan OK');
 	};
 
@@ -289,7 +299,7 @@ my $test = TestLDFCreateStore->new;
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
 			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
 		}
-		isa_ok($c2plans[1], 'AtteanX::Plan::LDF::Triple');
+		isa_ok($c2plans[1], 'AtteanX::Plan::LDF::Triple::EnterCache');
 		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
 	};
 
@@ -312,7 +322,7 @@ exit 0;
 		
 		my ($join, $ldfplan1)	= @children;
 		isa_ok($join, 'Attean::Plan::HashJoin');
-		isa_ok($ldfplan1, 'AtteanX::Plan::LDF::Triple');
+		isa_ok($ldfplan1, 'AtteanX::Plan::LDF::Triple::EnterCache');
 		like($ldfplan1->as_string, qr(^- LDFTriple \{ \?o, <http://example\.org/m/b>, "2" }), 'First LDF ok');
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
@@ -321,7 +331,7 @@ exit 0;
 		}
 		my ($table, $ldfplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Table');
-		isa_ok($ldfplan2, 'AtteanX::Plan::LDF::Triple');
+		isa_ok($ldfplan2, 'AtteanX::Plan::LDF::Triple::EnterCache');
 		like($ldfplan2->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s }), 'Second LDF ok');
 	};
 
