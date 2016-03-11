@@ -47,14 +47,15 @@ Log::Any::Adapter->set($ENV{LOG_ADAPTER} ) if ($ENV{LOG_ADAPTER});
 
 my $cache = CHI->new( driver => 'Memory', global => 1 );
 
-my $redis_server;
-eval {
-	$redis_server = Test::RedisServer->new;
-} or plan skip_all => 'redis-server is required to this test';
+my $redis_server = Test::RedisServer->new;
 
 my $redis1 = Redis->new( $redis_server->connect_info );
 
 is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
+
+my $redis2 = Redis->new( $redis_server->connect_info );
+
+is $redis2->ping, 'PONG', 'Redis store ping pong ok';
 
 
 my $basequery =<<'EOQ';
@@ -78,8 +79,8 @@ my $test = TestLDFCreateStore->new;
 my $ldfstore	= $test->create_store(triples => [triple(iri('http://example.org/foo'), iri('http://example.org/m/r'), literal('1'))]);
 
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, ldf_store => $ldfstore, cache => $cache);
-my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, ldf_store => $ldfstore, pubsub => $redis1, cache => $cache);
+my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis2);
 note 'Testing counts without actual caching';
 
 my @patterns1 = $analyzer1->count_patterns;
@@ -88,7 +89,7 @@ is(scalar @patterns1, 0, 'Nothing now');
 
 $basequery =~ s/< 50/> 5000000/;
 
-my $analyzer2 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+my $analyzer2 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis2);
 
 my @patterns2 = $analyzer2->count_patterns;
 is(scalar @patterns2, 0, 'Still nothing');
@@ -96,7 +97,7 @@ is(scalar @patterns2, 0, 'Still nothing');
 $basequery =~ s/a dbo:PopulatedPlace/dbo:abstract ?abs/g;
 
 
-my $analyzer3 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+my $analyzer3 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis2);
 
 
 my @patterns3 = $analyzer3->count_patterns;
@@ -110,7 +111,7 @@ ok($pattern->object->is_variable, 'Object is variable');
 is($pattern->predicate->compare(iri('http://dbpedia.org/ontology/populationTotal')), 0, 'The correct predicate IRI');
 
 $basequery =~ s/FILTER \(\?pop > 5000000\)/?place a dbo:Region ./;
-my $analyzer4 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis1);
+my $analyzer4 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis2);
 
 
 my @patterns4 = $analyzer4->count_patterns;
