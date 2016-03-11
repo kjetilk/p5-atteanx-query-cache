@@ -9,10 +9,10 @@ our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001_03';
 
 use Moo;
-use AtteanX::Query::AccessPlan::LDF;
+use AtteanX::Query::AccessPlan::PrefetchLDF;
 
 extends 'AtteanX::QueryPlanner::Cache';
-with 'AtteanX::Query::AccessPlan::LDF';
+with 'AtteanX::Query::AccessPlan::PrefetchLDF';
 
 # Only allow rotation on joins who have one child matching: - Either a
 # Attean::Plan::Quad, AtteanX::Plan::SPARQLBGP, or
