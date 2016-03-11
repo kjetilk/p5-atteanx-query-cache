@@ -43,6 +43,9 @@ use AtteanX::Query::Cache::Analyzer;
 use Data::Dumper;
 use AtteanX::Model::SPARQLCache;
 use AtteanX::Query::Cache::Retriever;
+use Redis;
+use Test::RedisServer;
+
 use Log::Any::Adapter;
 Log::Any::Adapter->set($ENV{LOG_ADAPTER} ) if ($ENV{LOG_ADAPTER});
 
@@ -56,6 +59,10 @@ package TestLDFCreateStore {
         with 'Test::Attean::Store::LDF::Role::CreateStore';
 };
 
+my $redis_server = Test::RedisServer->new;
+
+my $redis1 = Redis->new( $redis_server->connect_info );
+is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
 
 my $triples = [
 				   triple(iri('http://example.org/bar'), iri('http://example.org/c'), iri('http://example.org/foo')),
@@ -73,19 +80,15 @@ my $ldfstore = $testldf->create_store(triples => $triples);
 
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store,
 																		  ldf_store => $ldfstore,
+																		  pubsub => $redis1,
 																		  cache => CHI->new( driver => 'Memory', 
 																									global => 1 ));
 
 my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
 
-my $redis_server;
-eval {
-	$redis_server = Test::RedisServer->new;
-} or plan skip_all => 'redis-server is required to this test';
+my $redis2 = Redis->new( $redis_server->connect_info );
 
-my $redis1 = Redis->new( $redis_server->connect_info );
-
-is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
+is $redis2->ping, 'PONG', 'Redis store ping pong ok';
 
 
 note '3-triple BGP where cache breaks the join to cartesian';
@@ -102,7 +105,7 @@ can_ok($model, 'cache');
 
 $model->cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 													  '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
-my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis1);
+my $analyzer = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $query, store => $redis2);
 my $count = $analyzer->analyze_and_cache('best_cost_improvement');
 is($count, 2, 'Two triple patterns has match');
 
