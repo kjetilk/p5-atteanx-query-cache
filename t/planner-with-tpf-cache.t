@@ -26,8 +26,10 @@ isa_ok($p, 'AtteanX::QueryPlanner::Cache::LDF');
 
 my $redis_server = Test::RedisServer->new;
 my $redis1 = Redis->new( $redis_server->connect_info );
+my $redis2 = Redis->new( $redis_server->connect_info );
 
 is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
+is $redis2->ping, 'PONG', 'Redis store ping pong ok';
 
 
 package TestLDFCreateStore {
@@ -78,7 +80,7 @@ isa_ok($ldfstore, 'AtteanX::Store::LDF');
 my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
 																	  ldf_store => $ldfstore,
 																	  cache => $cache,
-																	  pubsub => $redis1);
+																	  pubsub => $redis2);
 isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
 
 my $checkquery = sub {
@@ -86,7 +88,7 @@ my $checkquery = sub {
 	die $pattern;
 };
 
-#$redis1->subscribe('prefetch.triplepattern', $checkquery);
+$redis1->subscribe('prefetch.triplepattern', $checkquery);
 
 
 subtest '1-triple BGP single variable, with cache, not cached' => sub {
@@ -103,11 +105,14 @@ subtest '1-triple BGP single variable, with cache, not cached' => sub {
 	does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 	isa_ok($plan, 'AtteanX::Plan::LDF::Triple::EnterCache');
 	is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
-	$plan->impl($model);#, 'Run plan');
+	ok($plan->impl($model), 'Run plan');
 #	is($redis1->wait_for_messages(1), 0, 'Plan not run');
 
-#	$redis1->subscribe('prefetch.triplepattern', $checkquery);
-#	is($redis1->wait_for_messages(1), 0, 'Not reached threshold yet');
+	is($redis1->wait_for_messages(1), 0, 'Not reached threshold yet');
 };
+
+#$redis1->subscribe('prefetch.triplepattern', $checkquery);
+
+
 
 done_testing;
