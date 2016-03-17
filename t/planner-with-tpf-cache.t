@@ -111,13 +111,8 @@ subtest '1-triple BGP single variable, with cache, not cached' => sub {
 	isa_ok($plan, 'AtteanX::Plan::LDF::Triple::EnterCache');
 	is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
 	ok($plan->impl($model), 'Run plan');
-#	is($redis1->wait_for_messages(1), 0, 'Plan not run');
-
-	is($redis1->wait_for_messages(1), 0, 'Not reached threshold yet');
+	is($redis1->wait_for_messages(1), 1, 'Got a message');
 };
-
-#$redis1->subscribe('prefetch.triplepattern', $checkquery);
-
 
 
 done_testing;
