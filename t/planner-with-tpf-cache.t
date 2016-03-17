@@ -90,6 +90,7 @@ my $checkquery = sub {
 		ok($string, 'Pattern is given as string');
 		ok(my $pattern = Attean::TriplePattern->parse($string), 'Pattern parsed');
 		isa_ok($pattern, 'Attean::TriplePattern');
+		is($pattern->canonicalize->tuples_string, '?v002 <http://example.org/m/p> ?v001 .', 'Correct canonicalization');
 	};
 };
 
