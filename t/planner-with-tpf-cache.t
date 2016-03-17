@@ -84,8 +84,13 @@ my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
 isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
 
 my $checkquery = sub {
-	my $pattern = shift;
-	die $pattern;
+	my $string = shift;
+	
+	subtest "Parsing pattern '$string'" => sub {
+		ok($string, 'Pattern is given as string') or diag "Pattern string given: $string";
+		ok(my $pattern = Attean::TriplePattern->parse($string), 'Pattern parsed') or diag "Pattern string given: $string";
+		isa_ok($pattern, 'Attean::TriplePattern') or diag "Pattern string given: $string";
+	};
 };
 
 $redis1->subscribe('prefetch.triplepattern', $checkquery);
