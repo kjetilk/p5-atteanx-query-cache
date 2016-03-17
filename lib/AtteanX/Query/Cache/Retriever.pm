@@ -30,10 +30,15 @@ sub fetch {
 	} elsif ($use_hash > 1) {
 		croak "Only triple patterns with one or two variables are supported, got $key";
 	}
-	my $sparql = 'SELECT ' . join(' ', map { $_->ntriples_string } @vars) . 
-	  " WHERE {\n\t" . $triple->as_sparql . '. }'; # TODO: Use LDFs for this
-	$self->log->debug("Running SPARQL query\n$sparql");
-	my $iter = $self->model->get_sparql($sparql);
+	my $iter;
+	if ($self->model->isa('AtteanX::Model::SPARQLCache::LDF')) {
+		# TODO: Use LDFs for this
+	} else {
+		my $sparql = 'SELECT ' . join(' ', map { $_->ntriples_string } @vars) .
+		  " WHERE {\n\t" . $triple->as_sparql . '. }';
+		$self->log->debug("Running SPARQL query\n$sparql");
+		$iter = $self->model->get_sparql($sparql);
+	}
 
 	if ($use_hash) { # Now, decide if we insert an array or a hash into the cache.
 		my $data;
