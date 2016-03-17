@@ -87,9 +87,9 @@ my $checkquery = sub {
 	my $string = shift;
 	
 	subtest "Parsing pattern '$string'" => sub {
-		ok($string, 'Pattern is given as string') or diag "Pattern string given: $string";
-		ok(my $pattern = Attean::TriplePattern->parse($string), 'Pattern parsed') or diag "Pattern string given: $string";
-		isa_ok($pattern, 'Attean::TriplePattern') or diag "Pattern string given: $string";
+		ok($string, 'Pattern is given as string');
+		ok(my $pattern = Attean::TriplePattern->parse($string), 'Pattern parsed');
+		isa_ok($pattern, 'Attean::TriplePattern');
 	};
 };
 
