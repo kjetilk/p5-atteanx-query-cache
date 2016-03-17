@@ -10,7 +10,7 @@ Test that prefetching from the net works
 
 It may come in handy to enable logging for debugging purposes, e.g.:
 
-  LOG_ADAPTER=Screen DEBUG=1 prove -lv t/idp_sparql_planner.t
+  LOG_ADAPTER=Screen DEBUG=1 prove -lv t/retriever.t
 
 This requires that L<Log::Any::Adapter::Screen> is installed.
 
@@ -59,31 +59,39 @@ my $triples = [
 
 my $test = TestCreateStore->new;
 my $store = $test->create_store(triples => $triples);
-my $model = AtteanX::Model::SPARQLCache->new(store => $store, 
-															cache => CHI->new( driver => 'Memory', 
-																					 global => 1 ));
 
-my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
+{
+	note "Test SPARQL Retriever";
+	my $model = AtteanX::Model::SPARQLCache->new(store => $store, 
+																cache => CHI->new( driver => 'Memory', 
+																						 global => 1 ));
+	
+	my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
+	run_tests($retriever);
+}
 
-subtest 'Simple single-variable triple' => sub {
-	my $t = triplepattern(variable('s'), iri('http://example.org/p'), literal('1'));
-	my $data = $retriever->fetch($t);
-	is(ref($data), 'ARRAY', 'We have arrayref');
-	is_deeply([sort @{$data}], ['<http://example.org/bar>','<http://example.org/foo>'], 'expected arrayref');
-};
 
-subtest 'Simple dual-variable triple' => sub {
-	my $t = triplepattern(variable('s'), iri('http://example.org/p'), variable('o'));
-	my $data = $retriever->fetch($t);
-	is(ref($data), 'HASH', 'We have hashref');
-	is(scalar keys %{$data}, 3, 'Three keys');
-	foreach my $key (keys %{$data}) {
-		like($key, qr/example/, 'All keys have example in them');
-		is(ref($data->{$key}), 'ARRAY', 'All entries have arrayrefs');
-	}
-	is(scalar @{$data->{'<http://example.org/bar>'}}, 2, 'One of them has two elements');
-};
-
+sub run_tests {
+	my $retriever = shift;
+	subtest 'Simple single-variable triple' => sub {
+		my $t = triplepattern(variable('s'), iri('http://example.org/p'), literal('1'));
+		my $data = $retriever->fetch($t);
+		is(ref($data), 'ARRAY', 'We have arrayref');
+		is_deeply([sort @{$data}], ['<http://example.org/bar>','<http://example.org/foo>'], 'expected arrayref');
+	};
+	
+	subtest 'Simple dual-variable triple' => sub {
+		my $t = triplepattern(variable('s'), iri('http://example.org/p'), variable('o'));
+		my $data = $retriever->fetch($t);
+		is(ref($data), 'HASH', 'We have hashref');
+		is(scalar keys %{$data}, 3, 'Three keys');
+		foreach my $key (keys %{$data}) {
+			like($key, qr/example/, 'All keys have example in them');
+			is(ref($data->{$key}), 'ARRAY', 'All entries have arrayrefs');
+		}
+		is(scalar @{$data->{'<http://example.org/bar>'}}, 2, 'One of them has two elements');
+	};
+}
 
 
 
