@@ -113,7 +113,7 @@ my $test = TestLDFCreateStore->new;
 	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
 																		  ldf_store => $ldfstore,
 																		  cache => $cache,
-																		  pubsub => $redis1);
+																		  publisher => $redis1);
 	isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
 	isa_ok($model, 'AtteanX::Model::SPARQLCache');
 	isa_ok($model, 'AtteanX::Model::SPARQL');

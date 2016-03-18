@@ -18,7 +18,7 @@ around 'impl' => sub {
 	my @params = @_;
 	my $self	= shift;
 	my $model	= shift;
-	$model->pubsub->publish('prefetch.triplepattern', $self->tuples_string);
+	$model->publisher->publish('prefetch.triplepattern', $self->tuples_string);
 	return $orig->(@params);
 };
 

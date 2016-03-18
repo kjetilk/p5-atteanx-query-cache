@@ -80,7 +80,7 @@ isa_ok($ldfstore, 'AtteanX::Store::LDF');
 my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
 																	  ldf_store => $ldfstore,
 																	  cache => $cache,
-																	  pubsub => $redis2);
+																	  publisher => $redis2);
 isa_ok($model, 'AtteanX::Model::SPARQLCache::LDF');
 
 my $checkquery = sub {

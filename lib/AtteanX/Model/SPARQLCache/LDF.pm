@@ -17,9 +17,9 @@ has 'ldf_store' => (is => 'ro',
 						  isa => InstanceOf['AtteanX::Store::LDF'],
 						  required => 1);
 
-has 'pubsub' => (is => 'ro',
+has 'publisher' => (is => 'ro',
 					  isa => InstanceOf['Redis'],
-					  predicate => 'has_pubsub'
+					  predicate => 'has_publisher'
 					 );
 
 around 'cost_for_plan' => sub {
