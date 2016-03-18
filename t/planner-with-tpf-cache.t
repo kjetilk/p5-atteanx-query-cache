@@ -110,7 +110,7 @@ subtest '1-triple BGP single variable, with cache, not cached' => sub {
 	my $plan = shift @plans;
 	does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 	isa_ok($plan, 'AtteanX::Plan::LDF::Triple::EnterCache');
-	is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o }', 'Good LDF plan');
+	is($plan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o } (publish)', 'Good LDF plan');
 	ok($plan->impl($model), 'Run plan');
 	is($redis1->wait_for_messages(1), 1, 'Got a message');
 };
