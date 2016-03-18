@@ -19,7 +19,7 @@ has 'ldf_store' => (is => 'ro',
 
 has 'pubsub' => (is => 'ro',
 					  isa => InstanceOf['Redis'],
-					  required => 1
+					  predicate => 'has_pubsub'
 					 );
 
 around 'cost_for_plan' => sub {

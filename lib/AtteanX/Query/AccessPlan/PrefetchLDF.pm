@@ -27,10 +27,18 @@ around 'access_plans' => sub {
 	# include queries to the remote SPARQL endpoint
 	my @plans = $orig->(@params);
 	# Add my plans
-	push(@plans, AtteanX::Plan::LDF::Triple::EnterCache->new(subject => $pattern->subject,
-																				predicate => $pattern->predicate,
-																				object => $pattern->object,
-																				distinct => 0));
+	if ($model->has_pubsub) {
+		push(@plans, AtteanX::Plan::LDF::Triple::EnterCache->new(subject => $pattern->subject,
+																					predicate => $pattern->predicate,
+																					object => $pattern->object,
+																					distinct => 0));
+	} else {
+		push(@plans, AtteanX::Plan::LDF::Triple->new(subject => $pattern->subject,
+																	predicate => $pattern->predicate,
+																	object => $pattern->object,
+																	distinct => 0));
+	}
+
 	return @plans;
 };
 
