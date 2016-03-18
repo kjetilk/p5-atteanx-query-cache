@@ -22,4 +22,9 @@ around 'impl' => sub {
 	return $orig->(@params);
 };
 
+around 'plan_as_string' => sub {
+	my $orig = shift;
+	return $orig->(@_) . ' (publish)';
+};
+
 1;
