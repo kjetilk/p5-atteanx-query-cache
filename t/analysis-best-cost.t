@@ -49,10 +49,6 @@ my $cache = CHI->new( driver => 'Memory', global => 1 );
 
 my $redis_server = Test::RedisServer->new;
 
-my $redis1 = Redis->new( $redis_server->connect_info );
-
-is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
-
 my $redis2 = Redis->new( $redis_server->connect_info );
 
 is $redis2->ping, 'PONG', 'Redis store ping pong ok';
@@ -88,7 +84,7 @@ my $ldfstore	= $test->create_store(triples => [
 
 
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache, pubsub => $redis1, ldf_store => $ldfstore);
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, cache => $cache, ldf_store => $ldfstore);
 
 subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 

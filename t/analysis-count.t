@@ -49,10 +49,6 @@ my $cache = CHI->new( driver => 'Memory', global => 1 );
 
 my $redis_server = Test::RedisServer->new;
 
-my $redis1 = Redis->new( $redis_server->connect_info );
-
-is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
-
 my $redis2 = Redis->new( $redis_server->connect_info );
 
 is $redis2->ping, 'PONG', 'Redis store ping pong ok';
@@ -79,7 +75,7 @@ my $test = TestLDFCreateStore->new;
 my $ldfstore	= $test->create_store(triples => [triple(iri('http://example.org/foo'), iri('http://example.org/m/r'), literal('1'))]);
 
 my $store = Attean->get_store('SPARQL')->new('endpoint_url' => iri('http://test.invalid/'));
-my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, ldf_store => $ldfstore, pubsub => $redis1, cache => $cache);
+my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store, ldf_store => $ldfstore, cache => $cache);
 my $analyzer1 = AtteanX::Query::Cache::Analyzer->new(model => $model, query => $basequery, store => $redis2);
 note 'Testing counts without actual caching';
 

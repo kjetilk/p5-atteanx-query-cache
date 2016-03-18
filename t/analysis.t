@@ -61,9 +61,6 @@ package TestLDFCreateStore {
 
 my $redis_server = Test::RedisServer->new;
 
-my $redis1 = Redis->new( $redis_server->connect_info );
-is $redis1->ping, 'PONG', 'Redis Pubsub ping pong ok';
-
 my $triples = [
 				   triple(iri('http://example.org/bar'), iri('http://example.org/c'), iri('http://example.org/foo')),
 				   triple(iri('http://example.org/foo'), iri('http://example.org/p'), iri('http://example.org/baz')),
@@ -80,7 +77,6 @@ my $ldfstore = $testldf->create_store(triples => $triples);
 
 my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store,
 																		  ldf_store => $ldfstore,
-																		  pubsub => $redis1,
 																		  cache => CHI->new( driver => 'Memory', 
 																									global => 1 ));
 
