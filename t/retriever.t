@@ -38,6 +38,7 @@ use Attean::RDF qw(triple triplepattern variable iri literal);
 
 use AtteanX::Query::Cache::Retriever;
 use AtteanX::Model::SPARQLCache;
+use AtteanX::Model::SPARQLCache::LDF;
 #use Carp::Always;
 use Log::Any::Adapter;
 Log::Any::Adapter->set($ENV{LOG_ADAPTER} ) if ($ENV{LOG_ADAPTER});
@@ -59,12 +60,30 @@ my $triples = [
 
 my $test = TestCreateStore->new;
 my $store = $test->create_store(triples => $triples);
+my $cache = CHI->new( driver => 'Memory', global => 1);
 
 {
 	note "Test SPARQL Retriever";
 	my $model = AtteanX::Model::SPARQLCache->new(store => $store, 
-																cache => CHI->new( driver => 'Memory', 
-																						 global => 1 ));
+																cache => $cache);
+	
+	my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
+	run_tests($retriever);
+}
+
+{
+	note "Test LDF Retriever";
+	package TestLDFCreateStore {
+		use Moo;
+		with 'Test::Attean::Store::LDF::Role::CreateStore';
+	};
+
+	my $testldf = TestLDFCreateStore->new;
+	my $ldfstore	= $testldf->create_store(triples => $triples);
+
+	my $model = AtteanX::Model::SPARQLCache::LDF->new(store => $store, 
+																	  cache => $cache,
+																	  ldf_store => $ldfstore);
 	
 	my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
 	run_tests($retriever);
