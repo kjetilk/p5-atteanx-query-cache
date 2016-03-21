@@ -16,6 +16,8 @@ use CHI;
 use Redis;
 use LWP::UserAgent::CHICaching;
 use AtteanX::Model::SPARQLCache::LDF;
+use AtteanX::QueryPlanner::Cache::LDF;
+use Try::Tiny;
 
 extends 'Plack::App::Attean::Endpoint';
 with 'MooX::Log::Any';
@@ -37,16 +39,15 @@ sub prepare_app {
 																		  ldf_store => $ldfstore,
 																		  cache => $cache,
 																		  publisher => $redissub);
-
-	$self->{endpoint} = eval {
-		Attean::Endpoint->new(model => $model,
-									 planner => AtteanX::QueryPlanner::Cache::LDF->new,
-									 conf => $self->{config},
-									 graph => iri('http://example.org/graph'));
-	  };
-	if ($@) {
-		$self->log->error($@);
-	}
+#	try {
+	$self->{endpoint} = Attean::Endpoint->new(model => $model,
+															planner => AtteanX::QueryPlanner::Cache::LDF->new,
+															conf => $self->{config},
+															graph => iri('http://example.org/graph'));
+	#	  };
+#	if ($@) {
+#		$self->log->error($@);
+#	}
 }
 
 1;
