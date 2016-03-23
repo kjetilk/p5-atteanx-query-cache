@@ -9,7 +9,7 @@ our $VERSION   = '0.001_03';
 
 use Moo;
 use Attean::RDF qw(triplepattern variable iri);
-use Types::Standard qw(Str Int InstanceOf);
+use Types::Standard qw(Str Int InstanceOf ConsumerOf);
 use Types::URI -all;
 use AtteanX::Parser::SPARQL;
 use AtteanX::Query::Cache::Analyzer::Model;
@@ -20,6 +20,7 @@ use AtteanX::Query::Cache::Retriever;
 use Carp;
 
 has 'query' => (is => 'ro', required => 1, isa => Str);
+has 'algebra' => (is => 'ro', isa => ConsumerOf['Attean::API::Algebra'], builder => '_parse_query', lazy => 1);
 has 'base_uri' => (is => 'ro', default => 'http://default.invalid/');
 
 has 'model' => (is => 'ro', isa => InstanceOf['AtteanX::Query::Cache::Analyzer::Model'], required => 1);
@@ -51,11 +52,17 @@ has store => (is => 'ro',
 				  required => 1
 				 );
 
-sub best_cost_improvement {
+sub _parse_query {
 	my $self = shift;
 	my $parser = AtteanX::Parser::SPARQL->new();
 	my ($algebra) = $parser->parse_list_from_bytes($self->query, $self->base_uri); # TODO: this is a bit of cargocult
+	return $algebra;
+}
+
+sub best_cost_improvement {
+	my $self = shift;
 	# First, we find the cost of the plan with the current cache:
+	my $algebra = $self->algebra;
 	my $curplanner = AtteanX::QueryPlanner::Cache::LDF->new;
 	my $curplan = $curplanner->plan_for_algebra($algebra, $self->model, [$self->graph]);
 	my $curcost = $curplanner->cost_for_plan($curplan, $self->model);
@@ -104,8 +111,7 @@ single-element array of L<Attean::TriplePattern>s will be returned.
 
 sub count_patterns {
 	my $self = shift;
-	my $parser = AtteanX::Parser::SPARQL->new();
-	my ($algebra) = $parser->parse_list_from_bytes($self->query, $self->base_uri);
+	my $algebra = $self->algebra;
 	my @worthy = ();
 	# TODO: Return undef if we can't process the query
 	foreach my $bgp ($algebra->subpatterns_of_type('Attean::Algebra::BGP')) {
