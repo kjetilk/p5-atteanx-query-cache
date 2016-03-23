@@ -32,12 +32,15 @@ my $model = AtteanX::Model::SPARQLCache::LDF->new(store => $sparqlstore,
 																  ldf_store => $ldfstore);
 my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
 
-$redissub->subscribe('prefetch.triplepattern', &callback);
+$redissub->subscribe('prefetch.triplepattern', 
+							sub {
+								my $string = shift;
+								my $pattern = Attean::TriplePattern->parse($string)->canonicalize;
+								my $numvars = scalar $pattern->values_consuming_role('Attean::API::Variable');
+								if ($numvars > 0 && $numvars <= 2) {
+									my $data = $retriever->fetch($pattern);
+									die Dumper($data);
+								}
+							});
 
-
-sub callback {
-	my $string = shift;
-	my $pattern = Attean::TriplePattern->parse($string)->canonicalize;
-	my $data = $retriever->fetch($pattern);
-	die Dumper($data);
-}
+$redissub->wait_for_messages(0) while 1;
