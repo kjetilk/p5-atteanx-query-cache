@@ -35,14 +35,14 @@ sub prepare_app {
 
 	RDF::Trine::default_useragent(LWP::UserAgent::CHICaching->new(cache => $cache));
 
-	my $model	= AtteanX::Model::SPARQLCache::LDF->new( store => $sparqlstore,
-																		  ldf_store => $ldfstore,
-																		  cache => $cache,
-																		  publisher => $redissub);
+	my $model	= AtteanX::Model::SPARQLCache->new( store => $sparqlstore,
+	#																ldf_store => $ldfstore,
+	#																publisher => $redissub,
+																	cache => $cache);
 #	try {
 	$self->{endpoint} = Attean::Endpoint->new(model => $model,
-															planner => AtteanX::QueryPlanner::Cache::LDF->new,
-															conf => $self->{config},
+															planner => AtteanX::QueryPlanner::Cache->new,
+															conf => { dahut => 1 },# $self->{config},
 															graph => iri('http://example.org/graph'));
 	#	  };
 #	if ($@) {
