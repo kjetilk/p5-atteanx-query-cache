@@ -38,8 +38,7 @@ $redissub->subscribe('prefetch.triplepattern',
 								my $pattern = Attean::TriplePattern->parse($string)->canonicalize;
 								my $numvars = scalar $pattern->values_consuming_role('Attean::API::Variable');
 								if ($numvars > 0 && $numvars <= 2) {
-									my $data = $retriever->fetch($pattern);
-									die Dumper($data);
+									$model->cache->set($string, $retriever->fetch($pattern));
 								}
 							});
 
