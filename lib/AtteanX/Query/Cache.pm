@@ -39,6 +39,8 @@ sub prepare_app {
 																		  ldf_store => $ldfstore,
 																		  cache => $cache,
 																		  publisher => $redissub);
+	$self->{config} = {};
+
 #	try {
 	$self->{endpoint} = Attean::Endpoint->new(model => $model,
 															planner => AtteanX::QueryPlanner::Cache::LDF->new,
