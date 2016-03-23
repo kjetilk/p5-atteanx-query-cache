@@ -141,7 +141,7 @@ sub analyze_and_cache {
 	foreach my $analyzer (@analyzers) {
 		croak "Could not find analyzer method $analyzer" unless $self->can($analyzer);
 	}
-	$self->log->info('Running analyzers named' . join(', ', @analyzers));
+	$self->log->info('Running analyzers named ' . join(', ', @analyzers));
 	my $retriever = AtteanX::Query::Cache::Retriever->new(model => $self->model); # TODO: Only OK if we don't do query planning
 	my $i = 0;
 	my %done;
