@@ -15,6 +15,7 @@ use AtteanX::Parser::SPARQL;
 use AtteanX::Query::Cache::Analyzer::Model;
 use AtteanX::QueryPlanner::Cache;
 use AtteanX::Query::Cache::Analyzer::QueryPlanner;
+use AtteanX::Query::Cache::Retriever;
 
 use Carp;
 

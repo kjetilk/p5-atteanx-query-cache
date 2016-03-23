@@ -42,7 +42,6 @@ use Attean::RDF;
 use AtteanX::Query::Cache::Analyzer;
 use Data::Dumper;
 use AtteanX::Model::SPARQLCache;
-use AtteanX::Query::Cache::Retriever;
 use Redis;
 use Test::RedisServer;
 
@@ -80,7 +79,6 @@ my $model = AtteanX::Query::Cache::Analyzer::Model->new(store => $store,
 																		  cache => CHI->new( driver => 'Memory', 
 																									global => 1 ));
 
-my $retriever = AtteanX::Query::Cache::Retriever->new(model => $model);
 
 my $redis2 = Redis->new( $redis_server->connect_info );
 
