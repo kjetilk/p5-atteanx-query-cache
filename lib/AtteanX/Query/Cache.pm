@@ -31,14 +31,14 @@ sub prepare_app {
 	my $redisserver = 'robin.kjernsmo.net:6379';
 	my $sparqlstore = Attean->get_store('SPARQL')->new(endpoint_url => $sparqlurl);
 	my $ldfstore    = Attean->get_store('LDF')->new(start_url => $ldfurl);
-	my $redissub = Redis->new(server => $redisserver, name => 'subscriber');
+	$self->{redissub} = Redis->new(server => $redisserver, name => 'subscriber');
 
 	RDF::Trine::default_useragent(LWP::UserAgent::CHICaching->new(cache => $cache));
 
 
 	my $model	= AtteanX::Model::SPARQLCache->new( store => $sparqlstore,
 	#																ldf_store => $ldfstore,
-	#																publisher => $redissub,
+	#																publisher => $self->{redissub},
 																	cache => $cache);
 
 	$self->{config} = {};
@@ -53,6 +53,21 @@ sub prepare_app {
 #		$self->log->error($@);
 #	}
 }
+
+# TODO: Add Age header
+
+around 'call' => sub {
+	my $orig = shift;
+	my @params = @_;
+	my $resp = $orig->(@params);
+	return $resp unless (${$resp}[0] == 200);
+	my ($self, $env) = @params;
+	my $req = Plack::Request->new($env);
+	return $resp unless ($req->param('query'));
+	my $sparql = $req->param('query');
+	$self->{redissub}->publish('analyze.fullquery', $sparql);
+	return $resp;
+};
 
 1;
 
