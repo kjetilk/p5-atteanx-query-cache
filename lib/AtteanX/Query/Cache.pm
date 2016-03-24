@@ -6,12 +6,22 @@ package AtteanX::Query::Cache;
 
 our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001_03';
+use Moo;
+
+extends 'AtteanX::Endpoint';
+
+
+
+package Plack::App::AtteanX::Query::Cache;
+
+our $AUTHORITY = 'cpan:KJETILK';
+our $VERSION   = '0.001_03';
 
 use Attean;
 use Attean::RDF;
 use RDF::Trine;
 use Moo;
-use Attean::Endpoint;
+use AtteanX::Endpoint;
 use CHI;
 use Redis;
 use LWP::UserAgent::CHICaching;
@@ -19,7 +29,7 @@ use AtteanX::Model::SPARQLCache::LDF;
 use AtteanX::QueryPlanner::Cache::LDF;
 use Try::Tiny;
 
-extends 'Plack::App::Attean::Endpoint';
+extends 'Plack::App::AtteanX::Endpoint';
 with 'MooX::Log::Any';
 
 sub prepare_app {

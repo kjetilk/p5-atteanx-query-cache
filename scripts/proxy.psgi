@@ -6,7 +6,7 @@ use warnings;
 
 use Plack::Request;
 use Plack::Builder;
-use AtteanX::Query::Cache;
+use Plack::App::AtteanX::Query::Cache;
 use LWP::MediaTypes qw(add_type);
 use RDF::Trine;
 use Log::Any::Adapter;
@@ -33,7 +33,7 @@ add_type( 'text/x-nquads' => qw(nq) );
 add_type( 'text/json' => qw(json) );
 add_type( 'text/html' => qw(html xhtml htm) );
 
-my $cacher = AtteanX::Query::Cache->new;
+my $cacher = Plack::App::AtteanX::Query::Cache->new;
 
 
 
