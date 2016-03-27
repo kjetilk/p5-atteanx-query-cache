@@ -23,7 +23,7 @@ my $redisserver = 'robin.kjernsmo.net:6379';
 my $cache = CHI->new(
 							driver => 'Redis',
 							namespace => 'cache',
-							server => $redisserver
+							server => $redisserver,
 							debug => 0
 						  );
 

@@ -30,7 +30,7 @@ sub prepare_app {
 	my $cache = CHI->new(
 								driver => 'Redis',
 								namespace => 'cache',
-								server => $redisserver
+								server => $redisserver,
 								debug => 0
 							  );
 	my $redissub = Redis->new(server => $redisserver, name => 'subscriber');
