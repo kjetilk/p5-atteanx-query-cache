@@ -16,10 +16,17 @@ use AtteanX::Query::Cache::Analyzer::Model;
 use Log::Any::Adapter;
 Log::Any::Adapter->set( 'Stdout' );
 
-my $cache = CHI->new( driver => 'Memory', global => 1 );
 my $sparqlurl = 'http://dbpedia.org/sparql';
 my $ldfurl = 'http://fragments.dbpedia.org/2015/en';
 my $redisserver = 'robin.kjernsmo.net:6379';
+
+my $cache = CHI->new(
+							driver => 'Redis',
+							namespace => 'cache',
+							server => $redisserver
+							debug => 0
+						  );
+
 
 RDF::Trine::default_useragent(LWP::UserAgent::CHICaching->new(cache => $cache));
 

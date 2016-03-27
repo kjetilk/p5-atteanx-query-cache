@@ -22,12 +22,17 @@ with 'MooX::Log::Any';
 sub prepare_app {
 	my $self = shift;
 	my $config = $self->{config};
-	my $cache = CHI->new( driver => 'Memory', global => 1 );
+	my $redisserver = 'robin.kjernsmo.net:6379';
 	my $sparqlurl = 'http://dbpedia.org/sparql';
 	my $ldfurl = 'http://fragments.dbpedia.org/2015/en';
-	my $redisserver = 'robin.kjernsmo.net:6379';
 	my $sparqlstore = Attean->get_store('SPARQL')->new(endpoint_url => $sparqlurl);
 	my $ldfstore    = Attean->get_store('LDF')->new(start_url => $ldfurl);
+	my $cache = CHI->new(
+								driver => 'Redis',
+								namespace => 'cache',
+								server => $redisserver
+								debug => 0
+							  );
 	my $redissub = Redis->new(server => $redisserver, name => 'subscriber');
 
 	RDF::Trine::default_useragent(LWP::UserAgent::CHICaching->new(cache => $cache));
@@ -40,7 +45,7 @@ sub prepare_app {
 
 #	try {
 	$self->{endpoint} = AtteanX::Query::Cache->new(model => $model,
-																  planner => AtteanX::QueryPlanner::Cache::LDF->new,
+																  planner => AtteanX::QueryPlanner::Cache->new,
 																  conf => $self->{config},
 																  graph => iri('http://example.org/graph'));
 	#	  };
