@@ -124,7 +124,7 @@ my $test = TestLDFCreateStore->new;
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', 'Empty BGP');
-		isa_ok($plan, 'Attean::Plan::Iterator');
+		isa_ok($plan, 'Attean::Plan::Table');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 1);
 	};
