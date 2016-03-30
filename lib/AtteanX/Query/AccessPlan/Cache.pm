@@ -34,7 +34,6 @@ around 'access_plans' => sub {
 		$self->log->info("Found data in the cache for " . $keypattern);
 		my $parser = Attean->get_parser('NTriples')->new;
 		my $iter;
-		my @rows;
 		if (ref($cached) eq 'ARRAY') {
 			# Then, the cache resulted from a TP with just one variable
 			my $iter = Attean::CodeIterator->new(
@@ -47,14 +46,25 @@ around 'access_plans' => sub {
 															);
 		} elsif (ref($cached) eq 'HASH') {
 			# Cache resulted from TP with two variables
-			while (my($first, $second) = each(%{$cached})) {
-				my $term1 = $parser->parse_term_from_string($first);
-				foreach my $term (@{$second}) {
-					my $term2 = $parser->parse_term_from_string($term);
-					push(@rows, Attean::Result->new(bindings => {$vars[0]->value => $term1,
-																				$vars[1]->value => $term2}));
-				}
-			}
+			my @firsts = keys(%{$cached});
+			my $iter = Attean::CodeIterator->new(
+															 generator => sub {
+																 state $i = 0;
+																 state $j = 0;
+																 return undef if ($i > $#firsts);
+																 my $term1 = $parser->parse_term_from_string($firsts[$i]);
+																 my @seconds = @{${$cached}{$firsts[$i]}};
+																 my $term2 = $parser->parse_term_from_string($seconds[$j]);
+																 $j++;
+																 if ($j > $#seconds) {
+																	 $j = 0;
+																	 $i++;
+																 }
+																 return Attean::Result->new(bindings => {$vars[0]->value => $term1,
+																													  $vars[1]->value => $term2});
+															 },
+															 item_type => 'Attean::API::Result',
+															);
 		} else {
 			croak 'Unknown data structure found in cache for key ' . $keypattern;
 		}
