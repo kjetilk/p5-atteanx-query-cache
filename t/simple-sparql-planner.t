@@ -73,14 +73,14 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', 'Empty BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 1);
 	};
 
 
 	subtest '1-triple BGP single variable, with cache, not cached' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v001 <p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v001 <dahut> "1" .', ['<http://example.org/dahut>']);
@@ -103,7 +103,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
-		isa_ok($c1plans[0], 'Attean::Plan::Table', 'First child when sorted is a table');
+		isa_ok($c1plans[0], 'Attean::Plan::Iterator', 'First child when sorted is a table');
 		isa_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
 		foreach my $plan (@{$c1plans[1]->children}) {
@@ -113,7 +113,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 
 
 	subtest '1-triple BGP two variables, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
@@ -126,7 +126,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan = $plans[0];
 #		warn $plan->as_string;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 3, 'Got three rows back');
 		foreach my $row (@$rows) {
@@ -153,7 +153,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('<http://example.org/foo> <p> ?v001 .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('<http://example.org/foo> <dahut> ?v001 .', ['"Le Dahu"@fr', '"Dahut"@en']);
 		$cache->set('?v001 <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
@@ -165,7 +165,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		is(scalar @plans, 2, 'Got two plans');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
@@ -193,7 +193,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 			ok($plan->distinct, 'Plans should be distinct');
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-				isa_ok($cplan, 'Attean::Plan::Table', 'All children should be Table');
+				isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Table');
 			}
 		}
 		my $plan = $plans[0];
@@ -228,20 +228,20 @@ does_ok($p, 'Attean::API::CostPlanner');
 		# estimate which side is going to be smaller.
 		foreach my $plan (@plans[0..1]) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
-			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
+			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Iterator');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
 		}
 
 		my $plan = $plans[0];
 		
-		# sorting the strings should result in the Attean::Plan::Table being first
+		# sorting the strings should result in the Attean::Plan::Iterator being first
 		my @children	= sort { "$a" cmp "$b" } @{$plan->children};
 		foreach my $cplan (@children) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 		}
 		
 		my ($table, $bgpplan)	= @children;
-		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
+		isa_ok($table, 'Attean::Plan::Iterator', 'Should join on Table first');
 		isa_ok($bgpplan, 'AtteanX::Plan::SPARQLBGP', 'Then on SPARQL BGP');
 		isa_ok(${$bgpplan->children}[0], 'Attean::Plan::Quad', 'That has a Quad child');
 		is(${$bgpplan->children}[0]->plan_as_string, 'Quad { ?s, <q>, <a>, <http://test.invalid/graph> }', 'Child plan OK');
@@ -260,7 +260,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
-			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
+			isa_ok($cplan, 'Attean::Plan::Iterator', 'and children of them are tables');
 		}
 		isa_ok($c2plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second grandchild when sorted is a BGP');
 		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
@@ -295,7 +295,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 			does_ok($plan, 'Attean::API::Plan');
 		}
 		my ($table, $bgpplan2)	= @grandchildren;
-		isa_ok($table, 'Attean::Plan::Table');
+		isa_ok($table, 'Attean::Plan::Iterator');
 		isa_ok($bgpplan2, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar(@{ $bgpplan2->children }), 1);
 		push(@triples, @{ $bgpplan2->children });
@@ -314,7 +314,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan::Join');
-		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
+		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Iterator');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
 		my @bgps	= $plan->subpatterns_of_type('AtteanX::Plan::SPARQLBGP');
 		is(scalar @bgps, 1, 'Should be only one BGP in the plan');
@@ -333,9 +333,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @cplans = sort @{$plan->children};
 		isa_ok($cplans[0], 'Attean::Plan::HashJoin', 'First child is hashjoin');
 		foreach my $c2plan (@{$cplans[0]->children}) {
-			isa_ok($c2plan, 'Attean::Plan::Table', 'and children of them are tables');
+			isa_ok($c2plan, 'Attean::Plan::Iterator', 'and children of them are tables');
 		}
-		isa_ok($cplans[1], 'Attean::Plan::Table', 'Other child is a table');
+		isa_ok($cplans[1], 'Attean::Plan::Iterator', 'Other child is a table');
 
 	};
 }

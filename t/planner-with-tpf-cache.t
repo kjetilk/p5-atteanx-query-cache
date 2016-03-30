@@ -98,7 +98,7 @@ $redis1->subscribe('prefetch.triplepattern', $checkquery);
 
 
 subtest '1-triple BGP single variable, with cache, not cached' => sub {
-	note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+	note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 	$cache->set('?v001 <http://example.org/m/p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 	$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 	$cache->set('?v001 <http://example.org/m/dahut> "1" .', ['<http://example.org/dahut>']);

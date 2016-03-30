@@ -124,14 +124,14 @@ my $test = TestLDFCreateStore->new;
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', 'Empty BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 1);
 	};
 
 
 	subtest '1-triple BGP single variable, with cache, not cached' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v001 <http://example.org/m/p> "1" .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
 		$cache->set('?v001 <http://example.org/m/dahut> "1" .', ['<http://example.org/dahut>']);
@@ -170,7 +170,7 @@ my $test = TestLDFCreateStore->new;
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
-		isa_ok($c1plans[0], 'Attean::Plan::Table');
+		isa_ok($c1plans[0], 'Attean::Plan::Iterator');
 		isa_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP') or diag("No SPARQLBGP child, plan is:\n" . $plan->as_string);
 		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
 		foreach my $plan (@{$c1plans[1]->children}) {
@@ -183,7 +183,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '1-triple BGP two variables, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v002 <http://example.org/m/p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 													 '<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?v001 <http://example.org/m/p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
@@ -197,7 +197,7 @@ my $test = TestLDFCreateStore->new;
 		is(scalar @plans, 3, "Got three plans");
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Plan::LDF::Triple::EnterCache');
 		is($plans[1]->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/p>, ?o } (publish)', 'Good plan');
@@ -219,7 +219,7 @@ my $test = TestLDFCreateStore->new;
 			ok($plan->distinct, 'Plans should be distinct');
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-				isa_ok($cplan, 'Attean::Plan::Table', 'All children should be Table');
+				isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Table');
 			}
 		}
 		my $plan = $plans[0];
@@ -261,7 +261,7 @@ my $test = TestLDFCreateStore->new;
 		# a Table and a LDF.
 		foreach my $plan (@plans[0..3]) {
 			does_ok($plan, 'Attean::API::Plan::Join', 'First 2 plans are joins');
-			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
+			my @tables	= $plan->subpatterns_of_type('Attean::Plan::Iterator');
 			is(scalar(@tables), 1, 'First 2 plans contain 1 table sub-plan');
 			my @ldfs	= $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 			is(scalar(@ldfs), 1, 'First 2 plans contain 1 table sub-plan');
@@ -269,14 +269,14 @@ my $test = TestLDFCreateStore->new;
 
 		my $plan = $plans[0];
 		
-		# sorting the strings should result in the Attean::Plan::Table being first
+		# sorting the strings should result in the Attean::Plan::Iterator being first
 		my @children	= sort { "$a" cmp "$b" } @{$plan->children};
 		foreach my $cplan (@children) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
 		}
 		
 		my ($table,$ldfplan)	= @children;
-		isa_ok($table, 'Attean::Plan::Table', 'Should join on Table first');
+		isa_ok($table, 'Attean::Plan::Iterator', 'Should join on Table first');
 		isa_ok($ldfplan, 'AtteanX::Plan::LDF::Triple::EnterCache', 'Then on LDF triple');
 		is($ldfplan->plan_as_string, 'LDFTriple { ?s, <http://example.org/m/q>, <http://example.org/m/a> } (publish)', 'Child plan OK');
 	};
@@ -297,7 +297,7 @@ my $test = TestLDFCreateStore->new;
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
-			isa_ok($cplan, 'Attean::Plan::Table', 'and children of them are tables');
+			isa_ok($cplan, 'Attean::Plan::Iterator', 'and children of them are tables');
 		}
 		isa_ok($c2plans[1], 'AtteanX::Plan::LDF::Triple::EnterCache');
 		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
@@ -330,7 +330,7 @@ exit 0;
 			does_ok($cplan, 'Attean::API::Plan');
 		}
 		my ($table, $ldfplan2)	= @grandchildren;
-		isa_ok($table, 'Attean::Plan::Table');
+		isa_ok($table, 'Attean::Plan::Iterator');
 		isa_ok($ldfplan2, 'AtteanX::Plan::LDF::Triple::EnterCache');
 		like($ldfplan2->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s } (publish)), 'Second LDF ok');
 	};
@@ -342,7 +342,7 @@ exit 0;
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan::Join');
-		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Table');
+		my @tables	= $plan->subpatterns_of_type('Attean::Plan::Iterator');
 		is(scalar @tables, 2, 'Should be 2 tables in the plan');
 		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 		is(scalar @ldfs, 1, 'Should be only one LDF in the plan');
@@ -361,9 +361,9 @@ exit 0;
 		my @cplans = sort @{$plan->children};
 		isa_ok($cplans[0], 'Attean::Plan::HashJoin', 'First child is hashjoin');
 		foreach my $c2plan (@{$cplans[0]->children}) {
-			isa_ok($c2plan, 'Attean::Plan::Table', 'and children of them are tables');
+			isa_ok($c2plan, 'Attean::Plan::Iterator', 'and children of them are tables');
 		}
-		isa_ok($cplans[1], 'Attean::Plan::Table', 'Other child is a table');
+		isa_ok($cplans[1], 'Attean::Plan::Iterator', 'Other child is a table');
 
 	};
 }

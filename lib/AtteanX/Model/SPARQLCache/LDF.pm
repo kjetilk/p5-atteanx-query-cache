@@ -28,7 +28,7 @@ around 'cost_for_plan' => sub {
 	my $self	= shift;
  	my $plan	= shift;
  	my $planner	= shift;
-	my @passthroughs = qw/Attean::Plan::Table Attean::Plan::Quad/;
+	my @passthroughs = qw/Attean::Plan::Iterator Attean::Plan::Quad/;
 	my $cost = $orig->(@params);
 	if ($self->log->is_debug) {
 		my $logcost = $cost || 'not defined';

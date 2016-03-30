@@ -25,7 +25,7 @@ package TestStore {
 		my $plan	= shift;
 		if ($plan->isa('Attean::Plan::Quad')) {
 			return 3;
-		} elsif ($plan->isa('Attean::Plan::Table')) {
+		} elsif ($plan->isa('Attean::Plan::Iterator')) {
 			return 2;
 		} elsif ($plan->isa('AtteanX::Plan::SPARQLBGP')) {
 			return 20;
@@ -80,18 +80,18 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => []);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', 'Empty BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 1);
 	};
 
 
 	subtest '1-triple BGP single variable, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
@@ -105,7 +105,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '1-triple BGP two variables, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
 															'<http://example.com/foo>' => ['<http://example.org/baz>', '<http://example.org/foobar>']});
 		$cache->set('?v001 <p> "dahut" .', ['<http://example.com/foo>', '<http://example.com/bar>']);
@@ -113,7 +113,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 3, 'Got three rows back');
 		foreach my $row (@$rows) {
@@ -136,7 +136,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '1-triple BGP single variable object, with cache' => sub {
-		note("A 1-triple BGP should produce a single Attean::Plan::Table plan object");
+		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('<http://example.org/foo> <p> ?v001 .', ['<http://example.org/foo>', '<http://example.org/bar>']);
 		$cache->set('<http://example.org/foo> <dahut> ?v001 .', ['"Le Dahu"@fr', '"Dahut"@en']);
 		$cache->set('?v001 <dahut> "Dahutten"@no .', ['<http://example.org/dahut>']);
@@ -146,7 +146,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$tp]);
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'Attean::Plan::Table');
+		isa_ok($plan, 'Attean::Plan::Iterator');
 		my $rows	= $plan->rows;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
@@ -169,7 +169,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		ok($plan->distinct);
 		foreach my $cplan (@{$plan->children}) {
 			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-			isa_ok($cplan, 'Attean::Plan::Table');
+			isa_ok($cplan, 'Attean::Plan::Iterator');
 		}
 	};
 

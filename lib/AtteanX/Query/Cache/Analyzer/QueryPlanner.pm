@@ -37,7 +37,7 @@ around 'access_plans' => sub {
 		foreach my $var (@vars) {
 			$row{$var->value} = iri('urn:x-internal:dummy');
 		}
-		push(@plans, Attean::Plan::Table->new( variables => \@vars,
+		push(@plans, Attean::Plan::Iterator->new( variables => \@vars,
 															rows => [Attean::Result->new(bindings => \%row)],
 															distinct => 0,
 															ordered => [] ));

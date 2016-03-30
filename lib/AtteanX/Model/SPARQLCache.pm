@@ -28,7 +28,7 @@ sub cost_for_plan {
  	my $plan	= shift;
  	my $planner	= shift;
 #	warn $plan->as_string;
-	if ($plan->isa('Attean::Plan::Table')) {
+	if ($plan->isa('Attean::Plan::Iterator')) {
  		return 2;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
  		return 100000;
