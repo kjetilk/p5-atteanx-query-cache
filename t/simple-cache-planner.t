@@ -92,7 +92,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->rows;
+		my $rows	= $plan->iterator->elements;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
 			my @vars = $row->variables;
@@ -114,7 +114,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->rows;
+		my $rows	= $plan->iterator->elements;
 		is(scalar(@$rows), 3, 'Got three rows back');
 		foreach my $row (@$rows) {
 			my @vars = sort $row->variables;
@@ -147,7 +147,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->rows;
+		my $rows	= $plan->iterator->elements;
 		is(scalar(@$rows), 2, 'Got two rows back');
 		foreach my $row (@$rows) {
 			my @vars = $row->variables;
