@@ -1,7 +1,7 @@
 use 5.010001;
 use strict;
 use warnings;
-
+use feature "state";
 
 package AtteanX::Query::AccessPlan::Cache;
 use Class::Method::Modifiers;
@@ -33,13 +33,18 @@ around 'access_plans' => sub {
 	if (defined($cached)) {
 		$self->log->info("Found data in the cache for " . $keypattern);
 		my $parser = Attean->get_parser('NTriples')->new;
+		my $iter;
 		my @rows;
 		if (ref($cached) eq 'ARRAY') {
 			# Then, the cache resulted from a TP with just one variable
-			foreach my $row (@{$cached}) { # TODO: arbitrary terms
-				my $term = $parser->parse_term_from_string($row);
-				push(@rows, Attean::Result->new(bindings => { $vars[0]->value => $term }));
-			}
+			my $iter = Attean::CodeIterator->new(
+															 generator => sub {
+																 state $i = 0;
+																 my $term = $parser->parse_term_from_string(${$cached}[$i++]);
+																 return Attean::Result->new(bindings => { $vars[0]->value => $term });
+															 },
+															 item_type => 'Attean::API::Result',
+															);
 		} elsif (ref($cached) eq 'HASH') {
 			# Cache resulted from TP with two variables
 			while (my($first, $second) = each(%{$cached})) {
