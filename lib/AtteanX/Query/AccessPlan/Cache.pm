@@ -39,7 +39,9 @@ around 'access_plans' => sub {
 			my $iter = Attean::CodeIterator->new(
 															 generator => sub {
 																 state $i = 0;
-																 my $term = $parser->parse_term_from_string(${$cached}[$i++]);
+																 return undef if ($i > $#{$cached});
+																 my $term = $parser->parse_term_from_string(${$cached}[$i]);
+																 $i++;
 																 return Attean::Result->new(bindings => { $vars[0]->value => $term });
 															 },
 															 item_type => 'Attean::API::Result',
@@ -50,8 +52,8 @@ around 'access_plans' => sub {
 			my $iter = Attean::CodeIterator->new(
 															 generator => sub {
 																 state $i = 0;
-																 state $j = 0;
 																 return undef if ($i > $#firsts);
+																 state $j = 0;
 																 my $term1 = $parser->parse_term_from_string($firsts[$i]);
 																 my @seconds = @{${$cached}{$firsts[$i]}};
 																 my $term2 = $parser->parse_term_from_string($seconds[$j]);
