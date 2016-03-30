@@ -58,10 +58,10 @@ around 'access_plans' => sub {
 		} else {
 			croak 'Unknown data structure found in cache for key ' . $keypattern;
 		}
-		push(@plans, Attean::Plan::Table->new( variables => \@vars,
-															rows => \@rows,
-															distinct => 0,
-															ordered => [] ));
+		push(@plans, Attean::Plan::Iterator->new( variables => \@vars,
+																iterator => $iter,
+																distinct => 0,
+																ordered => [] ));
 	} else {
 		$self->log->debug("Found no data in the cache for " . $keypattern);
 	}
