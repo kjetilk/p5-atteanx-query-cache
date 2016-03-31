@@ -92,15 +92,15 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->iterator->elements;
-		is(scalar(@$rows), 2, 'Got two rows back');
-		foreach my $row (@$rows) {
+		my @rows	= $plan->iterator->elements;
+		is(scalar(@rows), 2, 'Got two rows back');
+		foreach my $row (@rows) {
 			my @vars = $row->variables;
 			is($vars[0], 's', 'Variable name is correct');
 			does_ok($row->value('s'), 'Attean::API::IRI');
 		}
-		ok(${$rows}[0]->value('s')->equals(iri('http://example.org/foo')), 'First IRI is OK'); 
-		ok(${$rows}[1]->value('s')->equals(iri('http://example.org/bar')), 'Second IRI is OK'); 
+		ok($rows[0]->value('s')->equals(iri('http://example.org/foo')), 'First IRI is OK'); 
+		ok($rows[1]->value('s')->equals(iri('http://example.org/bar')), 'Second IRI is OK'); 
 
 	};
 
@@ -114,9 +114,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->iterator->elements;
-		is(scalar(@$rows), 3, 'Got three rows back');
-		foreach my $row (@$rows) {
+		my @rows	= $plan->iterator->elements;
+		is(scalar(@rows), 3, 'Got three rows back');
+		foreach my $row (@rows) {
 			my @vars = sort $row->variables;
 			is(scalar(@vars), 2, 'Each result has two variables');
 			is($vars[0], 'o', 'First variable name is correct');
@@ -124,7 +124,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 			does_ok($row->value('s'), 'Attean::API::IRI');
 			does_ok($row->value('o'), 'Attean::API::IRI');
 		}
-		my @testrows = sort {$a->value('o')->as_string cmp $b->value('o')->as_string} @$rows;
+		my @testrows = sort {$a->value('o')->as_string cmp $b->value('o')->as_string} @rows;
 
 		ok($testrows[0]->value('s')->equals(iri('http://example.org/foo')), 'First triple subject IRI is OK'); 
 		ok($testrows[0]->value('o')->equals(iri('http://example.org/bar')), 'First triple object IRI is OK'); 
@@ -147,15 +147,15 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->iterator->elements;
-		is(scalar(@$rows), 2, 'Got two rows back');
-		foreach my $row (@$rows) {
+		my @rows	= $plan->iterator->elements;
+		is(scalar(@rows), 2, 'Got two rows back');
+		foreach my $row (@rows) {
 			my @vars = $row->variables;
 			is($vars[0], 'name', 'Variable name is correct');
 			does_ok($row->value('name'), 'Attean::API::Literal');
 		}
-		ok(${$rows}[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
-		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
+		ok($rows[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
+		ok($rows[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
 
 	};
 
