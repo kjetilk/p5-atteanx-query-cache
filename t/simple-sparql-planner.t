@@ -183,20 +183,17 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
-		note("A 2-triple BGP with a join variable and without any ordering should produce two iteratorss joined");
+		note("A 2-triple BGP with a join variable and without any ordering should produce two iterators joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 5, 'Got 5 plans');
-		foreach my $plan (@plans[0..3]) {
-#			warn $plan->as_string;
-			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
-			ok($plan->distinct, 'Plans should be distinct');
-			foreach my $cplan (@{$plan->children}) {
-				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-				isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Iterator');
-			}
+		is(scalar @plans, 1, 'Got just 1 plan');
+		my $plan = shift @plans;
+		does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
+		ok($plan->distinct, 'Plans should be distinct');
+		foreach my $cplan (@{$plan->children}) {
+			does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
+			isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Iterator');
 		}
-		my $plan = $plans[0];
 		isa_ok($plan, 'Attean::Plan::HashJoin', '2-triple BGP with Tables should return HashJoin');
 	};
 
@@ -252,7 +249,6 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
-#		warn $plan->as_string;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
