@@ -12,6 +12,7 @@ our $VERSION   = '0.001_03';
 use Moo;
 use Attean::RDF qw(triplepattern variable iri);
 use Carp;
+use feature "state";
 
 extends 'AtteanX::QueryPlanner::Cache::LDF';
 
@@ -32,15 +33,28 @@ around 'access_plans' => sub {
 	if ($model->is_cached($keypattern)) {
 		$self->log->debug("Already accounted for by cache: $keypattern");
 	} elsif ($model->try eq $keypattern) {
-		$self->log->debug("Creating dummy table for $keypattern");
+		$self->log->debug("Creating dummy iterator for $keypattern");
 		my %row;
 		foreach my $var (@vars) {
 			$row{$var->value} = iri('urn:x-internal:dummy');
 		}
+		my $iter = Attean::CodeIterator->new(generator => sub {
+															 state $i = 0;
+															 warn $i;
+															 if ($i) {
+																 return undef
+															 } else {
+																 $i++;
+																 return Attean::Result->new(bindings => \%row);
+															 }
+														 },
+														 item_type => 'Attean::API::Result',
+														 variables => [map { $_->value } @vars]
+														);
 		push(@plans, Attean::Plan::Iterator->new( variables => \@vars,
-															rows => [Attean::Result->new(bindings => \%row)],
-															distinct => 0,
-															ordered => [] ));
+																iterator => $iter,
+																distinct => 0,
+																ordered => [] ));
 	}
 	return @plans;
 };
