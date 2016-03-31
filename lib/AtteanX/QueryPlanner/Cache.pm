@@ -102,7 +102,7 @@ around 'join_plans' => sub {
 			$self->log->trace("BGP Constructing Right:\n" . $rhs->as_string);
 			my @join_vars = $self->_join_vars($lhs, $rhs);
 
-			if ($lhs->isa('Attean::Plan::Iterator') && ($rhs->isa('Attean::Plan::Table'))) {
+			if ($lhs->isa('Attean::Plan::Iterator') && ($rhs->isa('Attean::Plan::Iterator'))) {
 #				push(@plans, $orig->($self, $model, $active_graphs, $default_graphs, [$rhs], [$lhs], @restargs)); # Most general solution
 				# Best known solution for now:
 				if (scalar(@join_vars) > 0) {
