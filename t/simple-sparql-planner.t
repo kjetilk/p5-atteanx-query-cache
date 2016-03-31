@@ -103,7 +103,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
-		isa_ok($c1plans[0], 'Attean::Plan::Iterator', 'First child when sorted is a table');
+		isa_ok($c1plans[0], 'Attean::Plan::Iterator', 'First child when sorted is an iterator');
 		isa_ok($c1plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second child when sorted is a BGP');
 		is(scalar @{$c1plans[1]->children}, 3, '...with three children');
 		foreach my $plan (@{$c1plans[1]->children}) {
@@ -127,9 +127,9 @@ does_ok($p, 'Attean::API::CostPlanner');
 #		warn $plan->as_string;
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->rows;
-		is(scalar(@$rows), 3, 'Got three rows back');
-		foreach my $row (@$rows) {
+		my @rows = $plan->iterator->elements;
+		is(scalar(@rows), 3, 'Got three rows back');
+		foreach my $row (@rows) {
 			my @vars = sort $row->variables;
 			is(scalar(@vars), 2, 'Each result has two variables');
 			is($vars[0], 'o', 'First variable name is correct');
@@ -137,7 +137,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 			does_ok($row->value('s'), 'Attean::API::IRI');
 			does_ok($row->value('o'), 'Attean::API::IRI');
 		}
-		my @testrows = sort {$a->value('o')->as_string cmp $b->value('o')->as_string} @$rows;
+		my @testrows = sort {$a->value('o')->as_string cmp $b->value('o')->as_string} @rows;
 
 		ok($testrows[0]->value('s')->equals(iri('http://example.org/foo')), 'First triple subject IRI is OK'); 
 		ok($testrows[0]->value('o')->equals(iri('http://example.org/bar')), 'First triple object IRI is OK'); 
@@ -166,15 +166,15 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my $plan = $plans[0];
 		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plan, 'Attean::Plan::Iterator');
-		my $rows	= $plan->rows;
-		is(scalar(@$rows), 2, 'Got two rows back');
-		foreach my $row (@$rows) {
+		my @rows = $plan->iterator->elements;
+		is(scalar(@rows), 2, 'Got two rows back');
+		foreach my $row (@rows) {
 			my @vars = $row->variables;
 			is($vars[0], 'name', 'Variable name is correct');
 			does_ok($row->value('name'), 'Attean::API::Literal');
 		}
-		ok(${$rows}[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
-		ok(${$rows}[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
+		ok($rows[0]->value('name')->equals(langliteral('Le Dahu', 'fr')), 'First literal is OK'); 
+		ok($rows[1]->value('name')->equals(langliteral('Dahut', 'en')), 'Second literal is OK'); 
 
 		does_ok($plans[1], 'Attean::API::Plan', '1-triple BGP');
 		isa_ok($plans[1], 'AtteanX::Plan::SPARQLBGP');
@@ -183,17 +183,17 @@ does_ok($p, 'Attean::API::CostPlanner');
 	};
 
 	subtest '2-triple BGP with join variable with cache on both' => sub {
-		note("A 2-triple BGP with a join variable and without any ordering should produce two tables joined");
+		note("A 2-triple BGP with a join variable and without any ordering should produce two iteratorss joined");
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
-		is(scalar @plans, 1, 'Got just 1 plans');
-		foreach my $plan (@plans) {
+		is(scalar @plans, 5, 'Got 5 plans');
+		foreach my $plan (@plans[0..3]) {
 #			warn $plan->as_string;
 			does_ok($plan, 'Attean::API::Plan::Join', 'Plans are join plans');
 			ok($plan->distinct, 'Plans should be distinct');
 			foreach my $cplan (@{$plan->children}) {
 				does_ok($cplan, 'Attean::API::Plan', 'Each child of 2-triple BGP');
-				isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Table');
+				isa_ok($cplan, 'Attean::Plan::Iterator', 'All children should be Iterator');
 			}
 		}
 		my $plan = $plans[0];
@@ -252,6 +252,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
 		my $plan = $plans[0];
+#		warn $plan->as_string;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		my @c1plans = sort @{$plan->children};
 		does_ok($c1plans[0], 'Attean::API::Plan::Join', 'First child when sorted is a join');
@@ -260,7 +261,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		my @c2plans = sort @{$c1plans[0]->children};
 		isa_ok($c2plans[0], 'Attean::Plan::HashJoin', 'First grandchild when sorted is a hash join');
 	 	foreach my $cplan (@{$c2plans[0]->children}) {
-			isa_ok($cplan, 'Attean::Plan::Iterator', 'and children of them are tables');
+			isa_ok($cplan, 'Attean::Plan::Iterator', 'and children of them are iterators');
 		}
 		isa_ok($c2plans[1], 'AtteanX::Plan::SPARQLBGP', 'Second grandchild when sorted is a BGP');
 		is(scalar @{$c2plans[1]->children}, 1, '...with one quad');
