@@ -26,6 +26,7 @@ around 'access_plans' => sub {
 	# include queries to the remote SPARQL endpoint
 	my @plans = $orig->(@params);
 	my @vars	= $pattern->values_consuming_role('Attean::API::Variable');
+	my @varstrings = map { $_->value } @vars;
 
 	# Start checking the cache
 	my $keypattern = $pattern->canonicalize->tuples_string;
@@ -36,37 +37,39 @@ around 'access_plans' => sub {
 		my $iter;
 		if (ref($cached) eq 'ARRAY') {
 			# Then, the cache resulted from a TP with just one variable
-			my $iter = Attean::CodeIterator->new(
-															 generator => sub {
-																 state $i = 0;
-																 return undef if ($i > $#{$cached});
-																 my $term = $parser->parse_term_from_string(${$cached}[$i]);
-																 $i++;
-																 return Attean::Result->new(bindings => { $vars[0]->value => $term });
-															 },
-															 item_type => 'Attean::API::Result',
-															);
+			$iter = Attean::CodeIterator->new(
+														 generator => sub {
+															 state $i = 0;
+															 return undef if ($i > $#{$cached});
+															 my $term = $parser->parse_term_from_string(${$cached}[$i]);
+															 $i++;
+															 return Attean::Result->new(bindings => { $vars[0]->value => $term });
+														 },
+														 item_type => 'Attean::API::Result',
+														 variables => \@varstrings
+														);
 		} elsif (ref($cached) eq 'HASH') {
 			# Cache resulted from TP with two variables
 			my @firsts = keys(%{$cached});
-			my $iter = Attean::CodeIterator->new(
-															 generator => sub {
-																 state $i = 0;
-																 return undef if ($i > $#firsts);
-																 state $j = 0;
-																 my $term1 = $parser->parse_term_from_string($firsts[$i]);
-																 my @seconds = @{${$cached}{$firsts[$i]}};
-																 my $term2 = $parser->parse_term_from_string($seconds[$j]);
-																 $j++;
-																 if ($j > $#seconds) {
-																	 $j = 0;
+			$iter = Attean::CodeIterator->new(
+														 generator => sub {
+															 state $i = 0;
+															 return undef if ($i > $#firsts);
+															 state $j = 0;
+															 my $term1 = $parser->parse_term_from_string($firsts[$i]);
+															 my @seconds = @{${$cached}{$firsts[$i]}};
+															 my $term2 = $parser->parse_term_from_string($seconds[$j]);
+															 $j++;
+															 if ($j > $#seconds) {
+																 $j = 0;
 																	 $i++;
-																 }
-																 return Attean::Result->new(bindings => {$vars[0]->value => $term1,
-																													  $vars[1]->value => $term2});
-															 },
-															 item_type => 'Attean::API::Result',
-															);
+															 }
+															 return Attean::Result->new(bindings => {$vars[0]->value => $term1,
+																												  $vars[1]->value => $term2});
+														 },
+														 item_type => 'Attean::API::Result',
+														 variables => \@varstrings
+														);
 		} else {
 			croak 'Unknown data structure found in cache for key ' . $keypattern;
 		}
