@@ -283,6 +283,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
+		# plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -303,8 +304,6 @@ my $test = TestLDFCreateStore->new;
 		is($c2plans[1]->subject->value, 'a', 'LDF triple with subject variable a');
 	};
 
-done_testing;
-exit 0;
 
 	subtest '3-triple BGP where cache breaks the join to cartesian' => sub {
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$z, $u, $y]);
@@ -323,7 +322,8 @@ exit 0;
 		my ($join, $ldfplan1)	= @children;
 		isa_ok($join, 'Attean::Plan::HashJoin');
 		isa_ok($ldfplan1, 'AtteanX::Plan::LDF::Triple::EnterCache');
-		like($ldfplan1->as_string, qr(^- LDFTriple \{ \?o, <http://example\.org/m/b>, "2" } (publish)), 'First LDF ok');
+		like($ldfplan1->as_string, qr|^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s \} \(publish\)|, 'First LDF ok');
+
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
 		foreach my $cplan (@grandchildren) {
@@ -332,7 +332,7 @@ exit 0;
 		my ($table, $ldfplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Iterator');
 		isa_ok($ldfplan2, 'AtteanX::Plan::LDF::Triple::EnterCache');
-		like($ldfplan2->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s } (publish)), 'Second LDF ok');
+		like($ldfplan2->as_string, qr|^- LDFTriple \{ \?o, <http://example\.org/m/b>, "2" \} \(publish\)|, 'Second LDF ok');
 	};
 
 	subtest '3-triple BGP chain with cache on two' => sub {
@@ -347,7 +347,7 @@ exit 0;
 		my @ldfs	= $plan->subpatterns_of_type('AtteanX::Plan::LDF::Triple');
 		is(scalar @ldfs, 1, 'Should be only one LDF in the plan');
 		my $ldf = shift @ldfs;
-		like($ldf->as_string, qr(^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s } (publish)), 'Second LDF ok');
+		like($ldf->as_string, qr|^- LDFTriple \{ \?a, <http://example\.org/m/c>, \?s \} \(publish\)|, 'Second LDF ok');
 	};
 
 
@@ -366,6 +366,34 @@ exit 0;
 		isa_ok($cplans[1], 'Attean::Plan::Iterator', 'Other child is a table');
 
 	};
+
+done_testing;
+exit 0;
+
+
+	subtest 'Full algebra with 3-triple BGP' => sub {
+		my $query = <<'END';
+		SELECT ?o WHERE {
+        ?s a foaf:Person ;
+           <http://example.org/m/q> ?o ;
+           <http://example.org/m/p> 1 .
+      } ORDER BY ?o
+END
+		my $parser = AtteanX::Parser::SPARQL->new();
+		my ($algebra) = $parser->parse_list_from_bytes($query, 'http://example.invalid/');
+		my $plan	= $p->plan_for_algebra($algebra, $model, [$graph]);
+		does_ok($plan, 'Attean::API::Plan::Join');
+		isa_ok($plan, 'Attean::Plan::HashJoin');
+		my @cplans = sort @{$plan->children};
+		isa_ok($cplans[0], 'Attean::Plan::HashJoin', 'First child is hashjoin');
+		foreach my $c2plan (@{$cplans[0]->children}) {
+			isa_ok($c2plan, 'Attean::Plan::Iterator', 'and children of them are tables');
+		}
+		isa_ok($cplans[1], 'Attean::Plan::Iterator', 'Other child is a table');
+
+	};
+
+
 }
 
 done_testing();
