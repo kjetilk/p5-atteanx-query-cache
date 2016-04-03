@@ -33,7 +33,7 @@ around 'access_plans' => sub {
 	my $cached = $model->cache->get($keypattern);
 	if (defined($cached)) {
 		$self->log->info("Found data in the cache for " . $keypattern);
-		my $parser = Attean->get_parser('NTriples')->new;
+		my $parser = Attean->get_parser('NTriples')->new(lazy_iris => 1);
 		my $iter;
 		if (ref($cached) eq 'ARRAY') {
 			# Then, the cache resulted from a TP with just one variable
