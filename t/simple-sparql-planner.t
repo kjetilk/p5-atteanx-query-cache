@@ -275,21 +275,21 @@ does_ok($p, 'Attean::API::CostPlanner');
 		
 		# sorting the strings should result in a HashJoin followed by a SPARQLBGP
 		my @children	= sort { "$a" cmp "$b" } @{ $plan->children };
-		foreach my $plan (@children) {
-			does_ok($plan, 'Attean::API::Plan');
+		foreach my $cplan (@children) {
+			does_ok($cplan, 'Attean::API::Plan');
 		}
 		
 		my @triples;
 		my ($join, $bgpplan1)	= @children;
-		isa_ok($join, 'Attean::Plan::HashJoin');
+		isa_ok($join, 'Attean::Plan::HashJoin') || diag $plan->as_string;
 		isa_ok($bgpplan1, 'AtteanX::Plan::SPARQLBGP');
 		is(scalar(@{ $bgpplan1->children }), 1);
 		push(@triples, @{ $bgpplan1->children });
 		
 		# sorting the strings should result in a Table followed by a SPARQLBGP
 		my @grandchildren	= sort { "$a" cmp "$b" } @{ $join->children };
-		foreach my $plan (@grandchildren) {
-			does_ok($plan, 'Attean::API::Plan');
+		foreach my $cplan (@grandchildren) {
+			does_ok($cplan, 'Attean::API::Plan');
 		}
 		my ($table, $bgpplan2)	= @grandchildren;
 		isa_ok($table, 'Attean::Plan::Iterator');
