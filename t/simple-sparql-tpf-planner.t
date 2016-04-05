@@ -158,7 +158,7 @@ my $test = TestLDFCreateStore->new;
 	};
 
 	subtest '4-triple BGP with join variable with cache one cached, no LDFs' => sub {
-		# plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		# This test should result in a join between a three-quad SPARQL
 		# BGP and a table from the cache
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $y, $x]);
@@ -284,7 +284,7 @@ my $test = TestLDFCreateStore->new;
 
 
 	subtest '5-triple BGP with join variable with cache two cached' => sub {
-		# plan skip_all => 'it works';
+		plan skip_all => 'it works';
 		my $bgp		= Attean::Algebra::BGP->new(triples => [$t, $u, $v, $w, $x]);
 		my @plans	= $p->plans_for_algebra($bgp, $model, [$graph]);
 		is(scalar @plans, 5, 'Got 5 plans');
@@ -368,8 +368,7 @@ my $test = TestLDFCreateStore->new;
 
 	};
 
-done_testing();
-exit;
+	my $parser = AtteanX::Parser::SPARQL->new();
 
 	subtest 'Full algebra with 3-triple BGP, nothing cached' => sub {
 		my $query = <<'END';
@@ -379,12 +378,34 @@ exit;
            <http://example.org/m/p> 1 .
       } ORDER BY ?o
 END
-		my $parser = AtteanX::Parser::SPARQL->new();
+		my ($algebra) = $parser->parse_list_from_bytes($query, 'http://example.invalid/');
+		does_ok($algebra, 'Attean::API::Algebra');
+		my $plan	= $p->plan_for_algebra($algebra, $model, [$graph]);
+#		my $c1plan = $pla
+#		foreach my $plan (@plans) {
+#			warn $plan->as_string;
+#		}
+#		my $plan = shift @plans;
+
+
+	};
+
+done_testing;
+exit 0;
+
+	subtest 'Full algebra with 3-triple BGP, nothing cached' => sub {
+		my $query = <<'END';
+		SELECT ?o WHERE {
+        ?s <http://example.org/m/c> <http://example.org/foo> ;
+           <http://example.org/m/q> ?o ;
+           <http://example.org/m/p> 1 .
+      } ORDER BY ?o
+END
 		my ($algebra) = $parser->parse_list_from_bytes($query, 'http://example.invalid/');
 		does_ok($algebra, 'Attean::API::Algebra');
 		my $plan	= $p->plan_for_algebra($algebra, $model, [$graph]);
 #		foreach my $plan (@plans) {
-#			warn $plan->as_string;
+			warn $plan->as_string;
 #		}
 #		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan::Join');
