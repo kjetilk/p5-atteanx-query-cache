@@ -70,6 +70,7 @@ around 'cost_for_plan' => sub {
 				} else {
 					$cost	= $lcost * $rcost;
 				}
+				$cost++ if ($rcost > $lcost);
 			} elsif ($plan->isa('Attean::Plan::HashJoin')) {
 				my $lcost		= $planner->cost_for_plan($children[0], $self);
 				my $rcost		= $planner->cost_for_plan($children[1], $self);

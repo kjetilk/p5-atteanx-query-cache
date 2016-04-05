@@ -62,6 +62,7 @@ sub cost_for_plan {
 			} else {
 				$cost	= $lcost * $rcost;
 			}
+			$cost++ if ($rcost > $lcost);
 			$cost	*= 10 unless ($plan->children_are_variable_connected);
 		} elsif ($plan->isa('Attean::Plan::HashJoin')) {
 			my $joined		= $plan->children_are_variable_connected;
