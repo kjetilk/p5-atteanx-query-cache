@@ -23,11 +23,15 @@ around 'access_plans' => sub {
 	my $active_graphs	= shift;
 	my $pattern	= shift;
 
+	my $max_triples = $ENV{'LDF_MAX_TRIPLES'} || 100000;
+
 	# First, add any plans coming from the original planner (which will
 	# include queries to the remote SPARQL endpoint
 	my @plans = $orig->(@params);
+
 	# Add my plans
-	if ($model->has_publisher) {
+	# Cache only below a limit for how many LDF triples we will fetch.
+	if ($model->has_publisher && $model->ldf_store->count_triples_estimate($pattern->values) <= $max_triples) {
 		push(@plans, AtteanX::Plan::LDF::Triple::EnterCache->new(subject => $pattern->subject,
 																					predicate => $pattern->predicate,
 																					object => $pattern->object,

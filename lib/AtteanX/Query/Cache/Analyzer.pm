@@ -32,6 +32,8 @@ has 'improvement_top' => (is => 'ro', isa => Int, default => '3');
 
 has 'count_threshold' => (is => 'ro', isa => Int, default => '3');
 
+has 'max_triples' => (is => 'ro', isa => Int, default => sub { return $ENV{'LDF_MAX_TRIPLES'} || 100000 });
+
 with 'MooX::Log::Any';
 
 =pod
@@ -75,6 +77,7 @@ sub best_cost_improvement {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
 			my $key = $triple->canonicalize->tuples_string;
 			next if ($self->model->is_cached($key));
+			next if ($self->model->ldf_store->count_triples_estimate($triple->values) > $self->max_triples);
 			$self->model->try($key);
 			if ($self->log->is_trace) {
 				foreach my $plan ($planner->plans_for_algebra($algebra, $self->model, [$self->graph])) {
@@ -118,6 +121,7 @@ sub count_patterns {
 		foreach my $triple (@{ $bgp->triples }) { # TODO: May need quads
 			my $patternkey = $triple->canonicalize->tuples_string; # This is the key for the triple we process
 			next if ($self->model->is_cached($patternkey));
+			next if ($self->model->ldf_store->count_triples_estimate($triple->values) > $self->max_triples);
 			my $key = $triple->predicate->as_string; # This is the key for the predicate we count
 			# Update the storage and return the triple pattern
 			$self->store->incr($key);
