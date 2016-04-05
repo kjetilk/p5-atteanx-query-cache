@@ -35,7 +35,9 @@ around 'access_plans' => sub {
 		$self->log->info("Found data in the cache for " . $keypattern);
 		my $parser = Attean->get_parser('NTriples')->new(lazy_iris => 1);
 		my $iter;
+		my $size = 0;
 		if (ref($cached) eq 'ARRAY') {
+			$size = scalar @{$cached};
 			# Then, the cache resulted from a TP with just one variable
 			$iter = Attean::CodeIterator->new(
 														 generator => sub {
@@ -51,6 +53,7 @@ around 'access_plans' => sub {
 		} elsif (ref($cached) eq 'HASH') {
 			# Cache resulted from TP with two variables
 			my @firsts = keys(%{$cached});
+			$size = scalar @firsts;
 			$iter = Attean::CodeIterator->new(
 														 generator => sub {
 															 state $i = 0;
@@ -75,6 +78,7 @@ around 'access_plans' => sub {
 		}
 		push(@plans, Attean::Plan::Iterator->new( variables => \@vars,
 																iterator => $iter,
+																size_estimate => $size,
 																distinct => 0,
 																ordered => [] ));
 	} else {
