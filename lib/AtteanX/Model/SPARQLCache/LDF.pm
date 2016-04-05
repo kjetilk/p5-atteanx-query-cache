@@ -74,6 +74,7 @@ around 'cost_for_plan' => sub {
 				my $lcost		= $planner->cost_for_plan($children[0], $self);
 				my $rcost		= $planner->cost_for_plan($children[1], $self);
 				$cost	= ($lcost + $rcost);
+				$cost++ if ($rcost > $lcost);
 			}
 		}
 		unless ($plan->children_are_variable_connected) {
