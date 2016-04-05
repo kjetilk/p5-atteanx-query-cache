@@ -29,7 +29,9 @@ sub cost_for_plan {
  	my $planner	= shift;
 #	warn $plan->as_string;
 	if ($plan->isa('Attean::Plan::Iterator')) {
-		return 2+int(log($plan->size_estimate+1)/log(10));
+		my $cost = 2;
+		$cost += int(log($plan->size_estimate+1)/log(10)) if ($plan->has_size_estimate);
+		return $cost;
 	} elsif ($plan->isa('Attean::Plan::Quad')) {
  		return 100000;
 	} elsif ($plan->isa('AtteanX::Plan::SPARQLBGP')) {
