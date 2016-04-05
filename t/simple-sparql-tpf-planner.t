@@ -42,6 +42,7 @@ use AtteanX::Store::Memory;
 #use Carp::Always;
 use Data::Dumper;
 use AtteanX::Store::SPARQL;
+use AtteanX::Parser::SPARQL;
 use AtteanX::Store::LDF;
 use AtteanX::Model::SPARQLCache::LDF;
 use Log::Any::Adapter;
@@ -104,7 +105,7 @@ my $test = TestLDFCreateStore->new;
 																	 triple(iri('http://example.com/dahut'), iri('http://example.org/m/b'), literal('2')),
 																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/baz')),
 																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/q'), iri('http://example.org/foobar')),
-																	 triple(iri('http://example.org/ma'), iri('http://example.org/m/c'), iri('http://example.org/foo')),
+																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/c'), iri('http://example.org/foo')),
 																	 triple(iri('http://example.org/m/a'), iri('http://example.org/m/p'), iri('http://example.org/m/o')),
 																	]);
 
@@ -367,21 +368,25 @@ my $test = TestLDFCreateStore->new;
 
 	};
 
-done_testing;
-exit 0;
+done_testing();
+exit;
 
-
-	subtest 'Full algebra with 3-triple BGP' => sub {
+	subtest 'Full algebra with 3-triple BGP, nothing cached' => sub {
 		my $query = <<'END';
 		SELECT ?o WHERE {
-        ?s a foaf:Person ;
+        ?s <http://example.org/m/c> <http://example.org/foo> ;
            <http://example.org/m/q> ?o ;
            <http://example.org/m/p> 1 .
       } ORDER BY ?o
 END
 		my $parser = AtteanX::Parser::SPARQL->new();
 		my ($algebra) = $parser->parse_list_from_bytes($query, 'http://example.invalid/');
+		does_ok($algebra, 'Attean::API::Algebra');
 		my $plan	= $p->plan_for_algebra($algebra, $model, [$graph]);
+#		foreach my $plan (@plans) {
+#			warn $plan->as_string;
+#		}
+#		my $plan = shift @plans;
 		does_ok($plan, 'Attean::API::Plan::Join');
 		isa_ok($plan, 'Attean::Plan::HashJoin');
 		my @cplans = sort @{$plan->children};
