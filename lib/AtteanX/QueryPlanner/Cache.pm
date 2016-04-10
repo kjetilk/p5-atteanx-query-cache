@@ -20,7 +20,7 @@ with 'Attean::API::NaiveJoinPlanner', 'Attean::API::SimpleCostPlanner';
 
 with 'AtteanX::API::JoinRotatingPlanner', 'MooX::Log::Any';
 
-with 'AtteanX::Query::AccessPlan::Cache';
+with 'AtteanX::Query::AccessPlan::SingleQuadBGP', 'AtteanX::Query::AccessPlan::Cache';
 
 # Only allow rotation on joins who have one child matching: - Either a
 # Attean::Plan::Quad or AtteanX::Plan::SPARQLBGP and the
@@ -126,21 +126,6 @@ around 'join_plans' => sub {
 
 	unless (@plans) {
 		@plans = $orig->(@params);
-	}
-	return @plans;
-};
-
-around 'access_plans' => sub {
-	my $orig			= shift;
-	my $self			= shift;
-	my $model			= shift;
-	my $active_graphs	= shift;
-	my $pattern			= shift;
-	my @plans			= $orig->($self, $model, $active_graphs, $pattern, @_);
-	my %seen;
-	if ($pattern->does('Attean::API::TriplePattern')) {
-		my $sp	= AtteanX::Plan::SPARQLBGP->new(children => [shift(@plans)], distinct => 0, ordered => []);
-		push(@plans, $sp);
 	}
 	return @plans;
 };
