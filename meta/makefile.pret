@@ -24,7 +24,7 @@
         :runtime-requirement    [ :on "Types::Standard 0.008"^^:CpanId ];
         :runtime-requirement    [ :on "MooX::Log::Any"^^:CpanId ];
         :runtime-requirement    [ :on "List::MoreUtils"^^:CpanId ];
-        :runtime-requirement    [ :on "AtteanX::Store::SPARQL 0.007_02"^^:CpanId ];
+        :runtime-requirement    [ :on "AtteanX::Store::SPARQL 0.008"^^:CpanId ];
         :runtime-requirement    [ :on "AtteanX::Store::LDF 0.02"^^:CpanId ];
         :runtime-requirement    [ :on "namespace::clean"^^:CpanId ] ;
         :runtime-requirement    [ :on "perl 5.014"^^:CpanId ] ;
