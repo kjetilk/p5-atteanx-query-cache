@@ -1,7 +1,7 @@
 package Plack::App::AtteanX::Query::Cache;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_03';
+our $VERSION   = '0.001_04';
 
 use Attean;
 use Attean::RDF;
