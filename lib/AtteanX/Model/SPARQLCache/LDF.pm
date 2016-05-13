@@ -35,7 +35,7 @@ around 'cost_for_plan' => sub {
 		$self->log->debug('Cost for original plan \'' . ref($plan) . "' was $logcost.");
 	}
 	if ($plan->isa('AtteanX::Plan::LDF::Triple')) {
-		$cost = $self->ldf_store->cost_for_plan($plan);
+		$cost = $self->ldf_store->cost_for_plan($plan, $planner);
 		return $cost;
 	}
 	if ($cost && any { $plan->isa($_) } @passthroughs) {
