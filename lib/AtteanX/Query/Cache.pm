@@ -47,7 +47,7 @@ practical use, but is released anyway as an alpha.
 =head1 BUGS
 
 Please report any bugs to
-L<http://rt.cpan.org/Dist/Display.html?Queue=AtteanX-Query-Cache>.
+L<https://github.com/kjetilk/p5-atteanx-query-cache/issues>.
 
 =head1 SEE ALSO
 
