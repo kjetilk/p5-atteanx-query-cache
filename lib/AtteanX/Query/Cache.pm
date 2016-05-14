@@ -33,6 +33,17 @@ AtteanX::Query::Cache - Experimental prefetching SPARQL query cacher
 
 =head1 DESCRIPTION
 
+This is an alpha release of a system that is able to intercept SPARQL
+queries if deployed in a proxy, and analyze the queries so that the
+query can be evaluated on the proxy. It can look up in a cache on the
+proxy, send parts of the query on to the remote endpoint, use Linked
+Data Fragments when appropriate and so on. The analyzer may also
+decide to prefetch certain data asynchronously.
+
+It is known at present to have insufficient performance for any
+practical use, but is released anyway as an alpha.
+
+
 =head1 BUGS
 
 Please report any bugs to
