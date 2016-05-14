@@ -5,7 +5,7 @@ use warnings;
 package AtteanX::Query::Cache;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.001_04';
+our $VERSION   = '0.002';
 use Moo;
 
 extends 'AtteanX::Endpoint';

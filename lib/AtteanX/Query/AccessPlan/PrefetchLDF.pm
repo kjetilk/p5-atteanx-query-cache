@@ -7,7 +7,7 @@ package AtteanX::Query::AccessPlan::PrefetchLDF;
 use Class::Method::Modifiers;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION   = '0.02';
+our $VERSION   = '0.002';
 
 use Moo::Role;
 use Carp;

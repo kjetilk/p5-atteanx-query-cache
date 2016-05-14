@@ -3,7 +3,7 @@ use v5.14;
 use warnings;
 
 our $AUTHORITY = 'cpan:KJETILK';
-our $VERSION = '0.01';
+our $VERSION = '0.002';
 
 use Moo;
 use Class::Method::Modifiers;
