@@ -15,3 +15,7 @@
 `AtteanX-Query-Cache 0.001_04 cpan:KJETILK`
 	issued  2016-04-13;
 	label   "First release of complete system".
+
+`AtteanX-Query-Cache 0.002 cpan:KJETILK`
+	issued  2016-05-15;
+	label   "Code quality improvements".
