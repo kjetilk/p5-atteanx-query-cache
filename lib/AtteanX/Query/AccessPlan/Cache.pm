@@ -43,7 +43,7 @@ around 'access_plans' => sub {
 														 generator => sub {
 															 state $i = 0;
 															 return undef if ($i > $#{$cached});
-															 my $term = $parser->parse_term_from_string(${$cached}[$i]);
+															 my $term = $parser->parse_term_from_bytes(${$cached}[$i]);
 															 $i++;
 															 return Attean::Result->new(bindings => { $vars[0]->value => $term });
 														 },
@@ -59,9 +59,9 @@ around 'access_plans' => sub {
 															 state $i = 0;
 															 return undef if ($i > $#firsts);
 															 state $j = 0;
-															 my $term1 = $parser->parse_term_from_string($firsts[$i]);
+															 my $term1 = $parser->parse_term_from_bytes($firsts[$i]);
 															 my @seconds = @{${$cached}{$firsts[$i]}};
-															 my $term2 = $parser->parse_term_from_string($seconds[$j]);
+															 my $term2 = $parser->parse_term_from_bytes($seconds[$j]);
 															 $j++;
 															 if ($j > $#seconds) {
 																 $j = 0;
