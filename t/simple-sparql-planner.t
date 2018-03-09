@@ -87,13 +87,13 @@ does_ok($p, 'Attean::API::CostPlanner');
 		
 		ok($model->is_cached(triplepattern(variable('foo'), iri('p'), literal('1'))->canonicalize->tuples_string), 'Cache has been set');
 		ok(! $model->is_cached(triplepattern(variable('foo'), iri('q'), literal('1'))->canonicalize->tuples_string), 'Cache has not been set');
-		my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
-		my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
-		does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
-		isa_ok($plan, 'AtteanX::Plan::SPARQLBGP');
-		is(scalar @{$plan->children}, 1, '1-triple BGP child');
-		like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
-		is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
+		# my $bgp		= Attean::Algebra::BGP->new(triples => [$u]);
+		# my $plan	= $p->plan_for_algebra($bgp, $model, [$graph]);
+		# does_ok($plan, 'Attean::API::Plan', '1-triple BGP');
+		# isa_ok($plan, 'AtteanX::Plan::SPARQLBGP');
+		# is(scalar @{$plan->children}, 1, '1-triple BGP child');
+		# like($plan->as_string, qr|SPARQLBGP.*?Quad \{ \?s, <p>, \?o, <http://test.invalid/graph> }|s, 'Good plan');
+		# is($plan->plan_as_string, 'SPARQLBGP', 'Good plan_as_string');
 	};
 
 	subtest '4-triple BGP with join variable with cache one cached' => sub {
@@ -111,7 +111,7 @@ does_ok($p, 'Attean::API::CostPlanner');
 		}
 	};
 
-
+die "OMG";
 	subtest '1-triple BGP two variables, with cache' => sub {
 		note("A 1-triple BGP should produce a single Attean::Plan::Iterator plan object");
 		$cache->set('?v002 <p> ?v001 .', {'<http://example.org/foo>' => ['<http://example.org/bar>'],
